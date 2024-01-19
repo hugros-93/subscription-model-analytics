@@ -7,6 +7,7 @@ Analytics framework for subscription model data.
 - Dash app
     - Show charts
     - Selector date period
+    - Details of data (per userId)
     - drag and drop file + loading state 
 
 - Charts
