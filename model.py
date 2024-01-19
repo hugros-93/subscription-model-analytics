@@ -71,32 +71,57 @@ class DataModel:
         self.retention_data_aggregated_dict = {}
 
         for date_range in self.date_range_dict:
-            
             # Cross join date range and subscriptions
-            data_date_range = pd.DataFrame(self.date_range_dict[date_range], columns=[date_range])
-            active_user_data_date_range = pd.merge(data_date_range, active_user_data, how="cross")
-            active_user_data_date_range = active_user_data_date_range.sort_values(['user_id', date_range])
+            data_date_range = pd.DataFrame(
+                self.date_range_dict[date_range], columns=[date_range]
+            )
+            active_user_data_date_range = pd.merge(
+                data_date_range, active_user_data, how="cross"
+            )
+            active_user_data_date_range = active_user_data_date_range.sort_values(
+                ["user_id", date_range]
+            )
 
             # Active subscription in each date range
-            active_user_data_date_range["is_active"] = active_user_data_date_range.apply(
-                lambda x: 1
-                if x["start_date"] <= x[date_range] < x["end_date"]
-                else 0,
+            active_user_data_date_range[
+                "is_active"
+            ] = active_user_data_date_range.apply(
+                lambda x: 1 if x["start_date"] <= x[date_range] < x["end_date"] else 0,
                 axis=1,
             )
-            active_user_data_date_range = active_user_data_date_range.groupby([date_range, 'user_id'])['is_active'].max().reset_index()  
+            active_user_data_date_range = (
+                active_user_data_date_range.groupby([date_range, "user_id"])[
+                    "is_active"
+                ]
+                .max()
+                .reset_index()
+            )
 
             # Status over time ()
-            active_user_data_date_range['is_active_previous'] = active_user_data_date_range.groupby('user_id')['is_active'].shift(1, fill_value=0)
-            active_user_data_date_range['was_active'] = active_user_data_date_range.groupby('user_id')['is_active'].cumsum()
-            active_user_data_date_range['was_active'] = active_user_data_date_range['was_active'].apply(lambda x: 1 if x > 1 else 0)
-            active_user_data_date_range['status'] = active_user_data_date_range.apply(
-                lambda x:
-                    'new_active' if x['is_active'] == 1 and x['is_active_previous'] == 0 and x['was_active'] == 0 else
-                    'resurrected' if x['is_active'] == 1 and x['is_active_previous'] == 0 and x['was_active'] == 1 else
-                    'churn' if x['is_active'] == 0 and x['is_active_previous'] == 1 else
-                    None,
-                    axis = 1
+            active_user_data_date_range[
+                "is_active_previous"
+            ] = active_user_data_date_range.groupby("user_id")["is_active"].shift(
+                1, fill_value=0
+            )
+            active_user_data_date_range[
+                "was_active"
+            ] = active_user_data_date_range.groupby("user_id")["is_active"].cumsum()
+            active_user_data_date_range["was_active"] = active_user_data_date_range[
+                "was_active"
+            ].apply(lambda x: 1 if x > 1 else 0)
+            active_user_data_date_range["status"] = active_user_data_date_range.apply(
+                lambda x: "new_active"
+                if x["is_active"] == 1
+                and x["is_active_previous"] == 0
+                and x["was_active"] == 0
+                else "resurrected"
+                if x["is_active"] == 1
+                and x["is_active_previous"] == 0
+                and x["was_active"] == 1
+                else "churn"
+                if x["is_active"] == 0 and x["is_active_previous"] == 1
+                else None,
+                axis=1,
             )
 
             # Active users - aggregated
@@ -106,54 +131,214 @@ class DataModel:
             aggregated_active.columns = ["number_active_users"]
 
             # New users - aggregated
-            active_user_data_date_range['new_active'] = active_user_data_date_range['status'].apply(lambda x: 1 if x == 'new_active' else 0)
+            active_user_data_date_range["new_active"] = active_user_data_date_range[
+                "status"
+            ].apply(lambda x: 1 if x == "new_active" else 0)
             aggregated_new_active = pd.DataFrame(
                 active_user_data_date_range.groupby(by=date_range)["new_active"].sum()
             )
             aggregated_new_active.columns = ["new_active"]
 
             # Resurected users - aggregated
-            active_user_data_date_range['resurrected'] = active_user_data_date_range['status'].apply(lambda x: 1 if x == 'resurrected' else 0)
+            active_user_data_date_range["resurrected"] = active_user_data_date_range[
+                "status"
+            ].apply(lambda x: 1 if x == "resurrected" else 0)
             aggregated_resurrected = pd.DataFrame(
                 active_user_data_date_range.groupby(by=date_range)["resurrected"].sum()
             )
             aggregated_resurrected.columns = ["resurrected"]
-            
+
             # Churn - aggregated
-            active_user_data_date_range['churn'] = active_user_data_date_range['status'].apply(lambda x: -1 if x == 'churn' else 0)
+            active_user_data_date_range["churn"] = active_user_data_date_range[
+                "status"
+            ].apply(lambda x: -1 if x == "churn" else 0)
             aggregated_churn = pd.DataFrame(
                 active_user_data_date_range.groupby(by=date_range)["churn"].sum()
             )
             aggregated_churn.columns = ["churn"]
 
             # All aggregated
-            active_user_data_date_range_aggregated = pd.concat([aggregated_active, aggregated_new_active, aggregated_resurrected, aggregated_churn], axis = 1)
+            active_user_data_date_range_aggregated = pd.concat(
+                [
+                    aggregated_active,
+                    aggregated_new_active,
+                    aggregated_resurrected,
+                    aggregated_churn,
+                ],
+                axis=1,
+            )
 
             # Retention - start date
-            retention_data = active_user_data_date_range.loc[active_user_data_date_range['is_active'] == 1, ['user_id', date_range, 'is_active']]
-            retention_start_date = retention_data.groupby(by='user_id')[date_range].min().reset_index()
-            retention_start_date.columns = ['user_id', f'start_{date_range}']
+            retention_data = active_user_data_date_range.loc[
+                :, # active_user_data_date_range["is_active"] == 1,
+                ["user_id", date_range, "is_active"],
+            ]
+            retention_start_date = (
+                retention_data.loc[retention_data["is_active"] == 1, :].groupby(by="user_id")[date_range].min().reset_index()
+            )
+            retention_start_date.columns = ["user_id", f"start_{date_range}"]
 
             # Retention - join
-            retention_data = pd.merge(retention_start_date, retention_data, how='left', on='user_id')
+            retention_data = pd.merge(
+                retention_start_date, retention_data, how="left", on="user_id"
+            )
 
             # Retention - add total
-            retention_start_date_total = retention_start_date.groupby(by=f'start_{date_range}')['user_id'].nunique().reset_index()
-            retention_start_date_total.columns = [f'start_{date_range}', 'total']
-            data_date_range.columns = [f'start_{date_range}']
-            retention_start_date_total = pd.merge(data_date_range, retention_start_date_total, on=f'start_{date_range}', how='left').fillna(0)
-            retention_data = pd.merge(retention_data, retention_start_date_total, on=f'start_{date_range}', how='left').fillna(0)
-            retention_data['percentage'] = retention_data.apply(lambda x: x['is_active'] / x['total'], axis = 1)
+            retention_start_date_total = (
+                retention_start_date.groupby(by=f"start_{date_range}")["user_id"]
+                .nunique()
+                .reset_index()
+            )
+            retention_start_date_total.columns = [f"start_{date_range}", "total"]
+            data_date_range.columns = [f"start_{date_range}"]
+            retention_start_date_total = pd.merge(
+                data_date_range,
+                retention_start_date_total,
+                on=f"start_{date_range}",
+                how="left",
+            ).fillna(0)
+            retention_data = pd.merge(
+                retention_data,
+                retention_start_date_total,
+                on=f"start_{date_range}",
+                how="left",
+            ).fillna(0)
+            retention_data["percentage"] = retention_data.apply(
+                lambda x: 100 * x["is_active"] / x["total"], axis=1
+            )
 
             # Retention - pivot
-            retention_data_pivot_number = retention_data.pivot_table(index=f'start_{date_range}', columns=date_range, values=['is_active'], aggfunc='sum').fillna(0).reset_index()
-            retention_data_pivot_percentage = retention_data.pivot_table(index=f'start_{date_range}', columns=date_range, values=['percentage'], aggfunc='sum').fillna(0).reset_index()
+            retention_data_pivot_number = (
+                retention_data.pivot_table(
+                    index=f"start_{date_range}",
+                    columns=date_range,
+                    values=["is_active"],
+                    aggfunc="sum",
+                )
+                .fillna(0)
+                .reset_index()
+            )
+            retention_data_pivot_percentage = (
+                retention_data.pivot_table(
+                    index=f"start_{date_range}",
+                    columns=date_range,
+                    values=["percentage"],
+                    aggfunc="sum",
+                )
+                .fillna(0)
+                .reset_index()
+            )
 
             # Store in dict
             self.active_user_data_dict[date_range] = active_user_data_date_range
-            self.active_user_data_aggregated_dict[date_range] = active_user_data_date_range_aggregated
+            self.active_user_data_aggregated_dict[
+                date_range
+            ] = active_user_data_date_range_aggregated
             self.retention_data_dict[date_range] = retention_data
-            self.retention_data_aggregated_dict[date_range] = [retention_data_pivot_number, retention_data_pivot_percentage]
+            self.retention_data_aggregated_dict[date_range] = [
+                retention_data_pivot_number,
+                retention_data_pivot_percentage,
+            ]
+
+    def get_charts(self, date_range):
+        # Dict charts
+        dict_chart = {}
+
+        # Data
+        active_users = self.active_user_data_aggregated_dict[date_range]
+        retention_aggregated_count = self.retention_data_aggregated_dict[date_range][0]
+        retention_aggregated_percentage = self.retention_data_aggregated_dict[date_range][1]
+
+        # Active users
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=active_users.index,
+                y=active_users["number_active_users"],
+                fill="tozeroy",
+                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
+                marker_color='Green'
+            )
+        )
+        fig.update_layout(
+            title="Active users",
+            xaxis_title=date_range.capitalize(),
+            yaxis_title="Number of active users",
+        )
+        dict_chart["active_users"] = fig
+
+        # Growth accounting
+        fig = go.Figure()
+        fig.add_trace(
+            go.Bar(
+                x=active_users.index,
+                y=active_users["new_active"],
+                name = 'New active',
+                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
+                marker_color='Green'
+            )
+        )
+        fig.add_trace(
+            go.Bar(
+                x=active_users.index,
+                y=active_users["resurrected"],
+                name = 'Resurrected',
+                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
+                marker_color='LightGreen'
+            )
+        )
+        fig.add_trace(
+            go.Bar(
+                x=active_users.index,
+                y=active_users["churn"],
+                name = 'Churn',
+                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
+                marker_color='Red'
+            )
+        )
+        fig.update_layout(
+            title="Growth accoutning",
+            xaxis_title=date_range.capitalize(),
+            yaxis_title="Number of users",
+        )
+        dict_chart["growth_accounting"] = fig
+
+        # Retention
+        fig_count = go.Figure()
+        fig_count.add_trace(
+            go.Heatmap(
+                x=[x[1].date() for x in retention_aggregated_count.columns[1:]],
+                y=[x.date() for x in retention_aggregated_count.values[:,0]],
+                z=retention_aggregated_count.values[:,1:],
+                hovertemplate = '<b>Start: %{y}<br>' + f'{date_range.capitalize()}: ' + '%{x}</b><br>%{z} users<extra></extra>',
+                colorscale='Greens'
+            )
+        )
+        fig_count.update_layout(
+            title="Retention",
+            xaxis_title=date_range.capitalize(),
+            yaxis_title=f"Start {date_range.capitalize()}"
+        )
+
+        fig_percentage = go.Figure()
+        fig_percentage.add_trace(
+            go.Heatmap(
+                x=[x[1].date() for x in retention_aggregated_percentage.columns[1:]],
+                y=[x.date() for x in retention_aggregated_percentage.values[:,0]],
+                z=retention_aggregated_percentage.values[:,1:],
+                hovertemplate = '<b>Start: %{y}<br>' + f'{date_range.capitalize()}: ' + '%{x}</b><br>%{z}%<extra></extra>',
+                colorscale='Blues'
+            )
+        )
+        fig_percentage.update_layout(
+            title="Retention (%)",
+            xaxis_title=date_range.capitalize(),
+            yaxis_title=f"Start {date_range.capitalize()}"
+        )
+
+        dict_chart["retention"] = [fig_count, fig_percentage]
+
+        return dict_chart
 
 
 if __name__ == "__main__":
@@ -164,25 +349,20 @@ if __name__ == "__main__":
     dataset["end_date"] = pd.to_datetime(dataset["end_date"])
 
     new_dataset = dataset.copy()
-    dataset["start_date"] = dataset["start_date"] + timedelta(days=5*300)
-    dataset["end_date"] = dataset["end_date"] + timedelta(days=5*300)
+    dataset["start_date"] = dataset["start_date"] + timedelta(days=5 * 300)
+    dataset["end_date"] = dataset["end_date"] + timedelta(days=5 * 300)
 
-    dataset = pd.concat([dataset, new_dataset], axis = 0)
+    dataset = pd.concat([dataset, new_dataset], axis=0)
 
     # Create data model
     model = DataModel(dataset)
-    model.get_active_users()
+    model.fit()
 
     # Get data
-    date_range = 'week'
-    active_users = model.active_user_data_dict[date_range]
-    active_users_aggregated = model.active_user_data_aggregated_dict[date_range]
+    date_range = "month"
+    fig_dict = model.get_charts(date_range)
 
-    retention_aggregated_count = model.retention_data_aggregated_dict[date_range][0]
-    retention_aggregated_percentage = model.retention_data_aggregated_dict[date_range][1]
-
-    # Plot
-    px.area(active_users_aggregated, x=active_users_aggregated.index, y="number_active_users").show()
-    px.bar(active_users_aggregated, x=active_users_aggregated.index, y=["new_active", "churn", "resurrected"]).show()
-    px.imshow(retention_aggregated_count.values[1:], aspect='auto', color_continuous_scale='Greens').show()
-    px.imshow(retention_aggregated_percentage.values[1:], aspect='auto', color_continuous_scale='Blues').show()
+    fig_dict["active_users"].show()
+    fig_dict["growth_accounting"].show()
+    fig_dict["retention"][0].show()
+    fig_dict["retention"][1].show()
