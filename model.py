@@ -300,6 +300,7 @@ class DataModel:
             title="Growth accoutning",
             xaxis_title=date_range.capitalize(),
             yaxis_title="Number of users",
+            barmode='relative'
         )
         dict_chart["growth_accounting"] = fig
 
