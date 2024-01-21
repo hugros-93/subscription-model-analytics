@@ -5,14 +5,13 @@ Analytics framework for subscription model data.
 
 ### Viz
 - Heatmaps
-    - Check why values not resturcted to pixels
-    - Add time scale values as a column
     - Retention curves
 
 - Dash app
     - Show charts
     - Selector date period
     - Details of data (per userId)
+    - Sanity check
     - Plotly style 
     - CSS
     - Drag and drop file + loading state 

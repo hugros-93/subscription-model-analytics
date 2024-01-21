@@ -17,7 +17,7 @@ class DataModel:
         self.nb_subscriptions = len(self.list_subscriptions)
 
         # Start and end dates
-        self.min_start_date = dataset["start_date"].min() - timedelta(days=31)
+        self.min_start_date = dataset["start_date"].min()
         self.max_end_date = dataset["end_date"].max() + timedelta(days=31)
 
         # Date range - days
@@ -171,11 +171,11 @@ class DataModel:
 
             # Retention - start date
             retention_data = active_user_data_date_range.loc[
-                active_user_data_date_range["is_active"] == 1,
+                :,
                 ["user_id", date_range, "is_active"],
             ]
             retention_start_date = (
-                retention_data.groupby(by="user_id")[date_range].min().reset_index()
+                retention_data.loc[retention_data["is_active"] == 1].groupby(by="user_id")[date_range].min().reset_index()
             )
             retention_start_date.columns = ["user_id", f"start_{date_range}"]
 
@@ -197,32 +197,38 @@ class DataModel:
                 how="left",
             )
             retention_data["percentage"] = retention_data.apply(
-                lambda x: 100 * x["is_active"] / x["total"] if x["total"] != 0 else 0.0,
+                lambda x: 100 * x["is_active"] / x["total"] if x["total"] != 0 else None,
                 axis=1,
             )
 
-            # Retention - pivot
+            if date_range == 'month':
+                retention_data[f"{date_range}_number"] = retention_data.apply(
+                    lambda x: relativedelta(x[date_range], x[f"start_{date_range}"]).years * 12 +  relativedelta(x[date_range], x[f"start_{date_range}"]).months if x[f"start_{date_range}"] <= x[date_range] else None, axis = 1
+                )
+            elif date_range == 'week':
+                retention_data[f"{date_range}_number"] = retention_data.apply(
+                    lambda x: int((x[date_range] - x[f"start_{date_range}"]).days / 7) if x[f"start_{date_range}"] <= x[date_range] else None, axis = 1
+                )
+            elif date_range == 'day':
+                retention_data[f"{date_range}_number"] = retention_data.apply(
+                    lambda x: (x[date_range] - x[f"start_{date_range}"]).days if x[f"start_{date_range}"] <= x[date_range] else None, axis = 1
+                )
+
+            retention_data = retention_data[retention_data[f"{date_range}_number"] >= 0]
+
+            # Retention - pivot - numbers
             retention_data_pivot_number = retention_data.pivot_table(
                 index=f"start_{date_range}",
-                columns=date_range,
+                columns=f"{date_range}_number",
                 values=["is_active"],
                 aggfunc="sum",
                 dropna=False,
-            ).reset_index()
-            retention_data_pivot_percentage = (
-                retention_data.pivot_table(
-                    index=f"start_{date_range}",
-                    columns=date_range,
-                    values=["percentage"],
-                    aggfunc="sum",
-                    dropna=False,
-                )
-            ).round().reset_index()
+            ).reset_index()          
 
             retention_data_pivot_number_complete = pd.DataFrame(
                 [
                     [d] + [None for _ in retention_data_pivot_number.values[0][1:]]
-                    for d in model.date_range_dict[date_range]
+                    for d in self.date_range_dict[date_range]
                     if d not in pd.unique(retention_data[f"start_{date_range}"])
                 ],
                 columns=retention_data_pivot_number.columns,
@@ -233,20 +239,49 @@ class DataModel:
                     [retention_data_pivot_number, retention_data_pivot_number_complete],
                     axis=0,
                 )
-                .reset_index()
-                .sort_index(ascending=False)
+                .reset_index(drop=True)
             )
+
+            retention_data_pivot_number.columns = retention_data_pivot_number.columns.droplevel(0)
+            retention_data_pivot_number.columns = [x if i != 0 else f"start_{date_range}" for i,x in enumerate(retention_data_pivot_number.columns)]
+            retention_data_pivot_number = retention_data_pivot_number.set_index(f"start_{date_range}").sort_index(ascending=False)
+            retention_data_pivot_number.columns = [i for i,_ in enumerate(retention_data_pivot_number.columns)]
+
+            # Retention - pivot - retention
+            retention_data_pivot_percentage = (
+                retention_data.pivot_table(
+                    index=f"start_{date_range}",
+                    columns=f"{date_range}_number",
+                    values=["percentage"],
+                    aggfunc="sum",
+                    dropna=False,
+                )
+            ).round().reset_index()
+
+            retention_data_pivot_percentage_complete = pd.DataFrame(
+                [
+                    [d] + [None for _ in retention_data_pivot_percentage.values[0][1:]]
+                    for d in self.date_range_dict[date_range]
+                    if d not in pd.unique(retention_data[f"start_{date_range}"])
+                ],
+                columns=retention_data_pivot_percentage.columns,
+            )
+
             retention_data_pivot_percentage = (
                 pd.concat(
                     [
                         retention_data_pivot_percentage,
-                        retention_data_pivot_number_complete,
+                        retention_data_pivot_percentage_complete,
                     ],
                     axis=0,
                 )
-                .reset_index()
-                .sort_index(ascending=False)
+                .reset_index(drop=True)
             )
+
+            retention_data_pivot_percentage.columns = retention_data_pivot_percentage.columns.droplevel(0)
+            retention_data_pivot_percentage.columns = [x if i != 0 else f"start_{date_range}" for i,x in enumerate(retention_data_pivot_percentage.columns)]
+            retention_data_pivot_percentage = retention_data_pivot_percentage.set_index(f"start_{date_range}").sort_index(ascending=False)
+            retention_data_pivot_percentage.columns = [i for i,_ in enumerate(retention_data_pivot_percentage.columns)]
 
             # Store in dict
             self.active_user_data_dict[date_range] = active_user_data_date_range
@@ -279,6 +314,7 @@ class DataModel:
                 fill="tozeroy",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
                 marker_color="Green",
+                marker_symbol="square"
             )
         )
         fig.update_layout(
@@ -329,16 +365,16 @@ class DataModel:
         fig_count = go.Figure()
         fig_count.add_trace(
             go.Heatmap(
-                x=[x[1] for x in retention_aggregated_count.columns[2:]],
+                x=retention_aggregated_count.columns,
                 y=[
-                    x.strftime("Cohort: %Y-%m-%d")
-                    for x in retention_aggregated_count.values[:-1, 1]
+                    x.strftime("> %Y-%m-%d")
+                    for x in retention_aggregated_count.index
                 ],
-                z=retention_aggregated_count.values[:, 2:],
+                z=retention_aggregated_count.values,
                 hovertemplate="<b>Start: %{y}<br>"
                 + f"{date_range.capitalize()}: "
                 + "%{x}</b><br>%{z} users<extra></extra>",
-                text=retention_aggregated_count.values[:, 1:],
+                text=retention_aggregated_count.values,
                 texttemplate="%{z}",
                 colorscale="Greens",
                 hoverongaps=False,
@@ -350,21 +386,22 @@ class DataModel:
             title="Retention",
             xaxis_title=date_range.capitalize(),
             yaxis_title=f"Start {date_range.capitalize()}",
+            xaxis_side='top'
         )
 
         fig_percentage = go.Figure()
         fig_percentage.add_trace(
             go.Heatmap(
-                x=[x[1] for x in retention_aggregated_percentage.columns[2:]],
+                x=retention_aggregated_percentage.columns,
                 y=[
-                    x.strftime("Cohort: %Y-%m-%d")
-                    for x in retention_aggregated_percentage.values[:-1, 1]
+                    x.strftime("> %Y-%m-%d")
+                    for x in retention_aggregated_percentage.index
                 ],
-                z=retention_aggregated_percentage.values[:, 2:],
+                z=retention_aggregated_percentage.values,
                 hovertemplate="<b>Start: %{y}<br>"
                 + f"{date_range.capitalize()}: "
                 + "%{x}</b><br>%{z}%<extra></extra>",
-                text=retention_aggregated_percentage.values[:, 1:],
+                text=retention_aggregated_percentage.values,
                 texttemplate="%{z}",
                 colorscale="Blues",
                 hoverongaps=False,
@@ -376,6 +413,7 @@ class DataModel:
             title="Retention (%)",
             xaxis_title=date_range.capitalize(),
             yaxis_title=f"Start {date_range.capitalize()}",
+            xaxis_side='top'
         )
 
         dict_chart["retention"] = [fig_count, fig_percentage]
@@ -384,17 +422,20 @@ class DataModel:
 
 
 if __name__ == "__main__":
+
+
+
     # Load file
     FILENAME = "dataset.csv"
     dataset = pd.read_csv(FILENAME)
     dataset["start_date"] = pd.to_datetime(dataset["start_date"])
     dataset["end_date"] = pd.to_datetime(dataset["end_date"])
 
-    new_dataset = dataset.copy()
-    dataset["start_date"] = dataset["start_date"] + timedelta(days=5 * 300)
-    dataset["end_date"] = dataset["end_date"] + timedelta(days=5 * 300)
+    # new_dataset = dataset.copy()
+    # dataset["start_date"] = dataset["start_date"] + timedelta(days=5 * 300)
+    # dataset["end_date"] = dataset["end_date"] + timedelta(days=5 * 300)
 
-    dataset = pd.concat([dataset, new_dataset], axis=0)
+    # dataset = pd.concat([dataset, new_dataset], axis=0)
 
     # Create data model
     model = DataModel(dataset)
