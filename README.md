@@ -4,12 +4,6 @@ Analytics framework for subscription model data.
 ## TO DO
 
 ### Viz
-- Fix retention charts
-    - Sort start date 
-    - Size pixels
-    - Add numbers in cells
-    - Add space between pixels
-
 - Dash app
     - Show charts
     - Selector date period
