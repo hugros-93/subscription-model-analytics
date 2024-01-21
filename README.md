@@ -4,11 +4,19 @@ Analytics framework for subscription model data.
 ## TO DO
 
 ### Viz
+- Fix retention charts
+    - Sort start date 
+    - Size pixels
+    - Add numbers in cells
+    - Add space between pixels
+
 - Dash app
     - Show charts
     - Selector date period
     - Details of data (per userId)
-    - drag and drop file + loading state 
+    - Plotly style 
+    - CSS
+    - Drag and drop file + loading state 
 
 - Charts
     - Churn (%)
