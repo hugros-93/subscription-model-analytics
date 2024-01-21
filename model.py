@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 import plotly.graph_objects as go
@@ -170,17 +171,16 @@ class DataModel:
 
             # Retention - start date
             retention_data = active_user_data_date_range.loc[
-                :, # active_user_data_date_range["is_active"] == 1,
+                active_user_data_date_range["is_active"] == 1,
                 ["user_id", date_range, "is_active"],
             ]
             retention_start_date = (
-                retention_data.loc[retention_data["is_active"] == 1, :].groupby(by="user_id")[date_range].min().reset_index()
+                retention_data.groupby(by="user_id")[date_range].min().reset_index()
             )
             retention_start_date.columns = ["user_id", f"start_{date_range}"]
 
-            # Retention - join
             retention_data = pd.merge(
-                retention_start_date, retention_data, how="left", on="user_id"
+                retention_data, retention_start_date, how="left", on="user_id"
             )
 
             # Retention - add total
@@ -190,43 +190,62 @@ class DataModel:
                 .reset_index()
             )
             retention_start_date_total.columns = [f"start_{date_range}", "total"]
-            data_date_range.columns = [f"start_{date_range}"]
-            retention_start_date_total = pd.merge(
-                data_date_range,
-                retention_start_date_total,
-                on=f"start_{date_range}",
-                how="left",
-            ).fillna(0)
             retention_data = pd.merge(
                 retention_data,
                 retention_start_date_total,
                 on=f"start_{date_range}",
                 how="left",
-            ).fillna(0)
+            )
             retention_data["percentage"] = retention_data.apply(
-                lambda x: 100 * x["is_active"] / x["total"], axis=1
+                lambda x: 100 * x["is_active"] / x["total"] if x["total"] != 0 else 0.0,
+                axis=1,
             )
 
             # Retention - pivot
-            retention_data_pivot_number = (
-                retention_data.pivot_table(
-                    index=f"start_{date_range}",
-                    columns=date_range,
-                    values=["is_active"],
-                    aggfunc="sum",
-                )
-                .fillna(0)
-                .reset_index()
-            )
+            retention_data_pivot_number = retention_data.pivot_table(
+                index=f"start_{date_range}",
+                columns=date_range,
+                values=["is_active"],
+                aggfunc="sum",
+                dropna=False,
+            ).reset_index()
             retention_data_pivot_percentage = (
                 retention_data.pivot_table(
                     index=f"start_{date_range}",
                     columns=date_range,
                     values=["percentage"],
                     aggfunc="sum",
+                    dropna=False,
                 )
-                .fillna(0)
+            ).round().reset_index()
+
+            retention_data_pivot_number_complete = pd.DataFrame(
+                [
+                    [d] + [None for _ in retention_data_pivot_number.values[0][1:]]
+                    for d in model.date_range_dict[date_range]
+                    if d not in pd.unique(retention_data[f"start_{date_range}"])
+                ],
+                columns=retention_data_pivot_number.columns,
+            )
+
+            retention_data_pivot_number = (
+                pd.concat(
+                    [retention_data_pivot_number, retention_data_pivot_number_complete],
+                    axis=0,
+                )
                 .reset_index()
+                .sort_index(ascending=False)
+            )
+            retention_data_pivot_percentage = (
+                pd.concat(
+                    [
+                        retention_data_pivot_percentage,
+                        retention_data_pivot_number_complete,
+                    ],
+                    axis=0,
+                )
+                .reset_index()
+                .sort_index(ascending=False)
             )
 
             # Store in dict
@@ -247,7 +266,9 @@ class DataModel:
         # Data
         active_users = self.active_user_data_aggregated_dict[date_range]
         retention_aggregated_count = self.retention_data_aggregated_dict[date_range][0]
-        retention_aggregated_percentage = self.retention_data_aggregated_dict[date_range][1]
+        retention_aggregated_percentage = self.retention_data_aggregated_dict[
+            date_range
+        ][1]
 
         # Active users
         fig = go.Figure()
@@ -256,8 +277,8 @@ class DataModel:
                 x=active_users.index,
                 y=active_users["number_active_users"],
                 fill="tozeroy",
-                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
-                marker_color='Green'
+                hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
+                marker_color="Green",
             )
         )
         fig.update_layout(
@@ -273,34 +294,34 @@ class DataModel:
             go.Bar(
                 x=active_users.index,
                 y=active_users["new_active"],
-                name = 'New active',
-                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
-                marker_color='Green'
+                name="New active",
+                hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
+                marker_color="Green",
             )
         )
         fig.add_trace(
             go.Bar(
                 x=active_users.index,
                 y=active_users["resurrected"],
-                name = 'Resurrected',
-                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
-                marker_color='LightGreen'
+                name="Resurrected",
+                hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
+                marker_color="LightGreen",
             )
         )
         fig.add_trace(
             go.Bar(
                 x=active_users.index,
                 y=active_users["churn"],
-                name = 'Churn',
-                hovertemplate = '<b>%{x}</b>: %{y} users<extra></extra>',
-                marker_color='Red'
+                name="Churn",
+                hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
+                marker_color="Red",
             )
         )
         fig.update_layout(
             title="Growth accoutning",
             xaxis_title=date_range.capitalize(),
             yaxis_title="Number of users",
-            barmode='relative'
+            barmode="relative",
         )
         dict_chart["growth_accounting"] = fig
 
@@ -308,33 +329,53 @@ class DataModel:
         fig_count = go.Figure()
         fig_count.add_trace(
             go.Heatmap(
-                x=[x[1].date() for x in retention_aggregated_count.columns[1:]],
-                y=[x.date() for x in retention_aggregated_count.values[:,0]],
-                z=retention_aggregated_count.values[:,1:],
-                hovertemplate = '<b>Start: %{y}<br>' + f'{date_range.capitalize()}: ' + '%{x}</b><br>%{z} users<extra></extra>',
-                colorscale='Greens'
+                x=[x[1] for x in retention_aggregated_count.columns[2:]],
+                y=[
+                    x.strftime("Cohort: %Y-%m-%d")
+                    for x in retention_aggregated_count.values[:-1, 1]
+                ],
+                z=retention_aggregated_count.values[:, 2:],
+                hovertemplate="<b>Start: %{y}<br>"
+                + f"{date_range.capitalize()}: "
+                + "%{x}</b><br>%{z} users<extra></extra>",
+                text=retention_aggregated_count.values[:, 1:],
+                texttemplate="%{z}",
+                colorscale="Greens",
+                hoverongaps=False,
+                xgap=1,
+                ygap=1,
             )
         )
         fig_count.update_layout(
             title="Retention",
             xaxis_title=date_range.capitalize(),
-            yaxis_title=f"Start {date_range.capitalize()}"
+            yaxis_title=f"Start {date_range.capitalize()}",
         )
 
         fig_percentage = go.Figure()
         fig_percentage.add_trace(
             go.Heatmap(
-                x=[x[1].date() for x in retention_aggregated_percentage.columns[1:]],
-                y=[x.date() for x in retention_aggregated_percentage.values[:,0]],
-                z=retention_aggregated_percentage.values[:,1:],
-                hovertemplate = '<b>Start: %{y}<br>' + f'{date_range.capitalize()}: ' + '%{x}</b><br>%{z}%<extra></extra>',
-                colorscale='Blues'
+                x=[x[1] for x in retention_aggregated_percentage.columns[2:]],
+                y=[
+                    x.strftime("Cohort: %Y-%m-%d")
+                    for x in retention_aggregated_percentage.values[:-1, 1]
+                ],
+                z=retention_aggregated_percentage.values[:, 2:],
+                hovertemplate="<b>Start: %{y}<br>"
+                + f"{date_range.capitalize()}: "
+                + "%{x}</b><br>%{z}%<extra></extra>",
+                text=retention_aggregated_percentage.values[:, 1:],
+                texttemplate="%{z}",
+                colorscale="Blues",
+                hoverongaps=False,
+                xgap=1,
+                ygap=1,
             )
         )
         fig_percentage.update_layout(
             title="Retention (%)",
             xaxis_title=date_range.capitalize(),
-            yaxis_title=f"Start {date_range.capitalize()}"
+            yaxis_title=f"Start {date_range.capitalize()}",
         )
 
         dict_chart["retention"] = [fig_count, fig_percentage]
