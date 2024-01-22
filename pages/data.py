@@ -5,7 +5,7 @@ import pandas as pd
 from utils.dash import get_please_load_data_message, get_table
 
 
-def make_layout(input_data, charts_data):
+def make_layout(input_data):
     if not input_data:
         return html.Div([html.H2("Data"), get_please_load_data_message()])
     else:

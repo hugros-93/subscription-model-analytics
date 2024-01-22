@@ -9,7 +9,7 @@ import json
 import pandas as pd
 
 from pages import readme, data, analytics
-from utils.dash import get_header_buttons, get_navigation, DashboardColors
+from utils.dash import get_header_buttons, get_navigation, get_filters, DashboardColors
 from utils.model import DataModel
 
 # Plotly template
@@ -43,7 +43,7 @@ pages = {
 }
 
 # Header
-title = html.H1(f"📈 {DASHBOARD_NAME}", style={'color': DashboardColors.white})
+title = html.H1(f"📈 {DASHBOARD_NAME}", style={"color": DashboardColors.white})
 
 header = html.Div(
     [
@@ -74,19 +74,35 @@ content = dcc.Loading(
     ],
 )
 
+# Filter
+dict_filter_choices = {
+        "date": {
+            "display_name": "Date range",
+            "data": ["day", "week", "month"],
+        }
+    }
+
+filters = html.Div(
+    [
+        dbc.Row(
+            get_filters(dict_filter_choices),
+            # align="Center",
+        )
+    ],
+    style={"padding": "20px", "margin-right": "30px", "margin-left": "30px"},
+    id="div-white-border-radius",
+)
+
 # Storage
-storage = html.Div([dcc.Store(id="store-input-data"), dcc.Store(id="store-model-charts")])
+storage = html.Div(
+    [dcc.Store(id="store-input-data"), dcc.Store(id="store-model-charts")]
+)
 
 # Layout
 app.layout = html.Div(
-    [
-        dcc.Location(id="url"),
-        header,
-        html.Br(),
-        content,
-        storage
-    ]
+    [dcc.Location(id="url"), header, filters, content, storage]
 )
+
 
 # Callback page navigation
 @app.callback(
@@ -94,28 +110,38 @@ app.layout = html.Div(
     [
         Input("url", "pathname"),
         Input("store-input-data", "data"),
-        Input("store-model-charts", "data")
-    ]
+        Input("store-model-charts", "data"),
+        Input("dropdown-filter-date", "value")
+    ],
 )
-def render_page_content(pathname, input_data, charts_data):
-    for page in pages:
-        if pages[page]["href"] == pathname:
-            return pages[page]["content"].make_layout(input_data, charts_data)
-        
+def render_page_content(pathname, input_data, charts_data, date_range):
+    if pathname == "/":
+        return pages["Readme"]["content"].make_layout()
+    elif pathname == "/data":
+        return pages["Data"]["content"].make_layout(input_data)
+    elif pathname == "/analytics":
+        if date_range:
+            chart_data_date_range = charts_data[date_range]
+        else:
+            chart_data_date_range = None
+        return pages["Analytics"]["content"].make_layout(chart_data_date_range)
+    else:
+        return None
+
 # Callback load data
 @app.callback(
     [
         Output("store-input-data", "data"),
         Output("store-model-charts", "data"),
         Output("button-load-data", "value"),
-        Output("output-load-data", "children")
+        Output("output-load-data", "children"),
     ],
-    Input("button-load-data", "n_clicks")
+    Input("button-load-data", "n_clicks"),
 )
 def load_data(n_clicks):
     if n_clicks:
         # Load data
-        filename = 'dataset.csv'
+        filename = "dataset.csv"
         dataset = pd.read_csv(filename)
         dataset["start_date"] = pd.to_datetime(dataset["start_date"])
         dataset["end_date"] = pd.to_datetime(dataset["end_date"])
@@ -125,22 +151,19 @@ def load_data(n_clicks):
         model.fit()
 
         # Get data
-        date_range = "month"
-        fig_dict = model.get_charts(date_range)
+        fig_dict = {}
+        for date_range in model.date_range_dict.keys():
+            fig_dict[date_range] = model.get_charts(date_range)
 
         return [
             dataset.to_json(date_format="iso", orient="split"),
             fig_dict,
             "Load data",
-            True
+            True,
         ]
     else:
-        return [
-            None,
-            None,
-            "Load data",
-            False
-        ]
+        return [None, None, "Load data", False]
+
 
 # Callback load data modal
 @app.callback(
@@ -155,6 +178,7 @@ def toggle_modal(output_load_data, close_click, is_open):
     if close_click or output_load_data:
         return not is_open
     return is_open
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)

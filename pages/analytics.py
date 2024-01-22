@@ -1,10 +1,9 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
-from utils.dash import get_please_load_data_message
+from utils.dash import get_please_load_data_message, get_filters
 
-
-def make_layout(input_data, charts_data):
+def make_layout(charts_data):
     if not charts_data:
         return html.Div([html.H2("Analytics"), get_please_load_data_message()])
     else:

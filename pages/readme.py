@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 from utils.dash import DashboardColors
 
 
-def make_layout(input_data, charts_data):
+def make_layout():
     return html.Div(
         [
             html.H2("Readme"),

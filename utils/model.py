@@ -449,7 +449,7 @@ class DataModel:
         )
 
         retention_data = retention_data.loc[
-            :, [f"start_{date_range}", "month", "is_active"]
+            :, [f"start_{date_range}", date_range, "is_active"]
         ]
         retention_data = (
             retention_data.groupby([f"start_{date_range}", date_range])["is_active"]
