@@ -2,7 +2,6 @@
 Analytics framework for subscription model data.
 
 ## TO DO
-- Data loaded modal
 - Date selector in analytics
 - Reorganaize charts
 - Sanity check

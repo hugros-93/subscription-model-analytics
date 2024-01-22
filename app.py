@@ -107,7 +107,8 @@ def render_page_content(pathname, input_data, charts_data):
     [
         Output("store-input-data", "data"),
         Output("store-model-charts", "data"),
-        Output("button-load-data", "value")
+        Output("button-load-data", "value"),
+        Output("output-load-data", "children")
     ],
     Input("button-load-data", "n_clicks")
 )
@@ -130,14 +131,30 @@ def load_data(n_clicks):
         return [
             dataset.to_json(date_format="iso", orient="split"),
             fig_dict,
-            "Load data"
+            "Load data",
+            True
         ]
     else:
         return [
             None,
             None,
-            "Load data"
+            "Load data",
+            False
         ]
+
+# Callback load data modal
+@app.callback(
+    Output("modal-load-data", "is_open"),
+    inputs=[
+        Input("output-load-data", "children"),
+        Input("button-modal-load-data", "n_clicks"),
+    ],
+    state=[State("modal-load-data", "is_open")],
+)
+def toggle_modal(output_load_data, close_click, is_open):
+    if close_click or output_load_data:
+        return not is_open
+    return is_open
 
 if __name__ == "__main__":
     app.run_server(debug=True)

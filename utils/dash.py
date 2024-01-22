@@ -24,7 +24,23 @@ def get_header_buttons():
                             n_clicks=0,
                             disabled=False,
                         ),
-                    )
+                    ),
+                    html.P(id="output-load-data"),
+                    dbc.Modal(
+                        [
+                            dbc.ModalBody("Data successfully loaded!"),
+                            dbc.ModalFooter(
+                                dbc.Button(
+                                    "Close",
+                                    id="button-modal-load-data",
+                                    className="ms-auto",
+                                    n_clicks=0,
+                                )
+                            ),
+                        ],
+                        id="modal-load-data",
+                        is_open=False,
+                    ),
                 ],
                 className="d-grid gap-2 d-md-flex justify-content-md-end",
             ),
