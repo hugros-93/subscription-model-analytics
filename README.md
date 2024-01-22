@@ -4,9 +4,6 @@ Analytics framework for subscription model data.
 ## TO DO
 
 ### Viz
-- Heatmaps
-    - Retention curves
-
 - Dash app
     - Show charts
     - Selector date period
