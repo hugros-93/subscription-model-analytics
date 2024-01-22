@@ -485,33 +485,3 @@ class DataModel:
         dict_chart["retention"] = [fig_count, fig_percentage, fig_retention_curves]
 
         return dict_chart
-
-
-if __name__ == "__main__":
-    # Load file
-    FILENAME = "dataset.csv"
-    dataset = pd.read_csv(FILENAME)
-    dataset["start_date"] = pd.to_datetime(dataset["start_date"])
-    dataset["end_date"] = pd.to_datetime(dataset["end_date"])
-
-    # new_dataset = dataset.copy()
-    # dataset["start_date"] = dataset["start_date"] + timedelta(days=5 * 300)
-    # dataset["end_date"] = dataset["end_date"] + timedelta(days=5 * 300)
-
-    # dataset = pd.concat([dataset, new_dataset], axis=0)
-
-    # Create data model
-    model = DataModel(dataset)
-    model.fit()
-
-    # Get data
-    date_range = "month"
-    fig_dict = model.get_charts(date_range)
-
-    model.retention_data_dict[date_range].to_csv("test.csv")
-
-    fig_dict["active_users"].show()
-    fig_dict["growth_accounting"].show()
-    fig_dict["retention"][0].show()
-    fig_dict["retention"][1].show()
-    fig_dict["retention"][2].show()

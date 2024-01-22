@@ -1,0 +1,24 @@
+/* Body and text style */
+body {
+    font-family: "Arial";
+    background-color: #e4e6e6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: black;
+}
+
+hr {
+    color: black;
+}
+
+/* Cards */
+.div-white-border-radius {
+    border-radius: 15px;
+    background-color: white;
+}

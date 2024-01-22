@@ -2,23 +2,23 @@
 Analytics framework for subscription model data.
 
 ## TO DO
+- Data loaded modal
+- Date selector in analytics
+- Reorganaize charts
+- Sanity check
+- Plotly style
+- CSS
 
 ### Viz
-- Dash app
-    - Show charts
-    - Selector date period
-    - Details of data (per userId)
-    - Sanity check
-    - Plotly style 
-    - CSS
-    - Drag and drop file + loading state 
-
 - Charts
     - Churn (%)
     - KPI
         - Active users now (+ delta last period)
         - New users current period (+ delta last period)
         - Churn current period (+ delta last period)
+
+### App
+- Drag and drop file
 
 ### Predictions
 - Retention model
