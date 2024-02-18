@@ -76,21 +76,27 @@ content = dcc.Loading(
 
 # Filter
 dict_filter_choices = {
-        "date": {
-            "display_name": "Date range",
-            "data": ["day", "week", "month"],
-        }
+    "date": {
+        "display_name": "Date range",
+        "data": ["day", "week", "month"],
     }
+}
 
 filters = html.Div(
     [
-        dbc.Row(
-            get_filters(dict_filter_choices),
-            # align="Center",
-        )
+        html.Br(),
+        html.Div(
+            [
+                dbc.Row(
+                    get_filters(dict_filter_choices),
+                    # align="Center",
+                )
+            ],
+            className="div-white-border-radius",
+            style={"padding": "20px", "margin-right": "30px", "margin-left": "30px"}
+        ),
     ],
-    style={"padding": "20px", "margin-right": "30px", "margin-left": "30px"},
-    id="div-white-border-radius",
+    id="filter-date",
 )
 
 # Storage
@@ -99,9 +105,19 @@ storage = html.Div(
 )
 
 # Layout
-app.layout = html.Div(
-    [dcc.Location(id="url"), header, filters, content, storage]
+app.layout = html.Div([dcc.Location(id="url"), header, filters, content, storage])
+
+
+# Callback layout
+@app.callback(
+    Output("filter-date", "style"),
+    [Input("url", "pathname"), Input("store-model-charts", "data")],
 )
+def update_date_filter(pathname, store_model_data):
+    if pathname == "/analytics" and store_model_data:
+        return {"display": "block", "visibility": "visible"}
+    else:
+        return {"display": "none", "visibility": "hidden"}
 
 
 # Callback page navigation
@@ -111,7 +127,7 @@ app.layout = html.Div(
         Input("url", "pathname"),
         Input("store-input-data", "data"),
         Input("store-model-charts", "data"),
-        Input("dropdown-filter-date", "value")
+        Input("dropdown-filter-date", "value"),
     ],
 )
 def render_page_content(pathname, input_data, charts_data, date_range):
@@ -120,13 +136,14 @@ def render_page_content(pathname, input_data, charts_data, date_range):
     elif pathname == "/data":
         return pages["Data"]["content"].make_layout(input_data)
     elif pathname == "/analytics":
-        if date_range:
+        if charts_data and date_range:
             chart_data_date_range = charts_data[date_range]
         else:
             chart_data_date_range = None
         return pages["Analytics"]["content"].make_layout(chart_data_date_range)
     else:
         return None
+
 
 # Callback load data
 @app.callback(
@@ -141,19 +158,63 @@ def render_page_content(pathname, input_data, charts_data, date_range):
 def load_data(n_clicks):
     if n_clicks:
         # Load data
-        filename = "dataset.csv"
+        print(f"> Loading data")
+        filename = "data/dataset.csv"
         dataset = pd.read_csv(filename)
         dataset["start_date"] = pd.to_datetime(dataset["start_date"])
         dataset["end_date"] = pd.to_datetime(dataset["end_date"])
 
-        # Create data model
-        model = DataModel(dataset)
-        model.fit()
+        # Load or create charts
+        print(f"> Loading charts")
+        try:
+            # Load existing data
+            with open("figures/fig_dict.json", "r") as f:
+                fig_dict = json.load(f)
+            for date_range in fig_dict:
+                for fig in fig_dict[date_range]:
+                    if type(fig_dict[date_range][fig]) == list:
+                        fig_dict[date_range][fig] = [
+                            go.Figure(json.loads(x)) for x in fig_dict[date_range][fig]
+                        ]
+                    else:
+                        fig_dict[date_range][fig] = go.Figure(
+                            json.loads(fig_dict[date_range][fig])
+                        )
+            print(f"> Existing charts loaded!")
+        except Exception as e:
+            print(f"> Not loading existing charts: {e}")
+            # Create data model
+            print(f"> Fitting model")
+            model = DataModel(dataset)
+            model.fit()
 
-        # Get data
-        fig_dict = {}
-        for date_range in model.date_range_dict.keys():
-            fig_dict[date_range] = model.get_charts(date_range)
+            # Get charts
+            print(f"> Creating charts")
+            fig_dict = {}
+            for date_range in model.date_range_dict.keys():
+                fig_dict[date_range] = model.get_charts(date_range)
+
+            # Export data
+            print(f"> Exporting charts")
+            fig_dict_json = {}
+            for date_range in fig_dict:
+                fig_dict_json[date_range] = {}
+                for fig in fig_dict[date_range]:
+                    if type(fig_dict[date_range][fig]) == list:
+                        fig_dict_json[date_range][fig] = [
+                            x.to_json() for x in fig_dict[date_range][fig]
+                        ]
+                        for i, x in enumerate(fig_dict[date_range][fig]):
+                            x.write_html(f"figures/{fig}_{date_range}_{i}.html")
+                    else:
+                        fig_dict_json[date_range][fig] = fig_dict[date_range][
+                            fig
+                        ].to_json()
+                        fig_dict[date_range][fig].write_html(
+                            f"figures/{fig}_{date_range}.html"
+                        )
+            with open("figures/fig_dict.json", "w") as f:
+                json.dump(fig_dict_json, f)
 
         return [
             dataset.to_json(date_format="iso", orient="split"),

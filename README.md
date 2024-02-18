@@ -2,11 +2,12 @@
 Analytics framework for subscription model data.
 
 ## TO DO
-- Date selector in analytics
-- Reorganaize charts
-- Sanity check
-- Plotly style
-- CSS
+- active users and retantion curve: same x axis
+- retention curve: check hover issues
+- sanity check
+- plotly style
+- css
+- dash design
 
 ### Viz
 - Charts

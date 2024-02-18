@@ -401,7 +401,7 @@ class DataModel:
         fig_count.add_trace(
             go.Heatmap(
                 x=retention_aggregated_count.columns,
-                y=[x.strftime("> %Y-%m-%d") for x in retention_aggregated_count.index],
+                y=[x.strftime("%Y-%m-%d") for x in retention_aggregated_count.index],
                 z=retention_aggregated_count.values,
                 hovertemplate="<b>Start: %{y}<br>"
                 + f"{date_range.capitalize()}: "
@@ -418,6 +418,7 @@ class DataModel:
             title="Retention",
             xaxis_title=date_range.capitalize(),
             yaxis_title=f"Start {date_range.capitalize()}",
+            yaxis_autorange="reversed",
             xaxis_side="top",
         )
 
@@ -426,7 +427,7 @@ class DataModel:
             go.Heatmap(
                 x=retention_aggregated_percentage.columns,
                 y=[
-                    x.strftime("> %Y-%m-%d")
+                    x.strftime("%Y-%m-%d")
                     for x in retention_aggregated_percentage.index
                 ],
                 z=retention_aggregated_percentage.values,
@@ -445,6 +446,7 @@ class DataModel:
             title="Retention (%)",
             xaxis_title=date_range.capitalize(),
             yaxis_title=f"Start {date_range.capitalize()}",
+            yaxis_autorange="reversed",
             xaxis_side="top",
         )
 
@@ -482,6 +484,6 @@ class DataModel:
             yaxis_title="Number of active users",
         )
 
-        dict_chart["retention"] = [fig_count, fig_percentage, fig_retention_curves]
+        dict_chart["retention"] = [fig_retention_curves, fig_count, fig_percentage]
 
         return dict_chart

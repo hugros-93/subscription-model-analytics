@@ -67,6 +67,7 @@ def get_filters(dict_filter_choices):
                 html.H6(dict_filter_choices[x]["display_name"]),
                 dcc.Dropdown(
                     dict_filter_choices[x]["data"],
+                    value=dict_filter_choices[x]["data"][2],
                     id=f"dropdown-filter-{x}",
                     style={"line-height": "30px"},
                 ),
