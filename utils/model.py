@@ -17,8 +17,8 @@ class DataModel:
         self.nb_subscriptions = len(self.list_subscriptions)
 
         # Start and end dates
-        self.min_start_date = dataset["start_date"].min()
-        self.max_end_date = dataset["end_date"].max() + timedelta(days=31)
+        self.min_start_date = dataset["start_date"].min() - timedelta(days=1)
+        self.max_end_date = datetime.today() + relativedelta(days=1)
 
         # Date range - days
         self.list_date_range_day = [
@@ -28,11 +28,11 @@ class DataModel:
 
         # Date range - weeks
         self.min_start_date_week = self.min_start_date - timedelta(
-            days=(self.min_start_date.weekday() - 0) % 7
+            days=(self.min_start_date.weekday()) % 7
         )
         self.max_end_date_week = self.max_end_date - timedelta(
-            days=(self.max_end_date.weekday() - 0) % 7
-        )
+            days=(self.max_end_date.weekday()) % 7
+        ) + timedelta(days=7)
         self.list_date_range_week = [
             self.min_start_date_week + timedelta(days=7 * i)
             for i in range(
@@ -42,7 +42,7 @@ class DataModel:
 
         # Date range - months
         self.min_start_date_month = self.min_start_date.replace(day=1)
-        self.max_end_date_month = self.max_end_date.replace(day=1)
+        self.max_end_date_month = self.max_end_date.replace(day=1) + relativedelta(months=1)
         self.list_date_range_month = [
             self.min_start_date_month + relativedelta(months=i)
             for i in range(
@@ -64,6 +64,7 @@ class DataModel:
 
     def fit(self):
         active_user_data = self.dataset.copy()
+        active_user_data['end_date'] = active_user_data['end_date'].fillna(self.max_end_date)
 
         self.active_user_data_dict = {}
         self.active_user_data_aggregated_dict = {}
@@ -181,6 +182,15 @@ class DataModel:
                 .reset_index()
             )
             retention_start_date.columns = ["user_id", f"start_{date_range}"]
+            retention_start_date[f"start_{date_range}"] = retention_start_date[f"start_{date_range}"].apply(
+                lambda x: x - timedelta(days=1) if date_range == 'day'
+                else x - timedelta(days=7) if date_range == 'week'
+                else (x - timedelta(days=1)).replace(day=1)
+            )
+            retention_data_start_period = retention_start_date.copy()
+            retention_data_start_period["is_active"] = 1
+            retention_data_start_period.columns = retention_data.columns
+            retention_data = pd.concat([retention_data, retention_data_start_period], axis=0)
 
             retention_data = pd.merge(
                 retention_data, retention_start_date, how="left", on="user_id"
@@ -453,6 +463,11 @@ class DataModel:
         retention_data = retention_data.loc[
             :, [f"start_{date_range}", date_range, "is_active"]
         ]
+        for start_date_range in pd.unique(retention_data[f"start_{date_range}"]):
+            for d in self.date_range_dict[date_range]:
+                retention_data = pd.concat([retention_data, pd.DataFrame([[start_date_range, d, 0]], columns=retention_data.columns)], axis = 0)
+        retention_data = retention_data.groupby([f"start_{date_range}", date_range]).sum()['is_active'].reset_index()
+
         retention_data = (
             retention_data.groupby([f"start_{date_range}", date_range])["is_active"]
             .sum()
@@ -460,6 +475,10 @@ class DataModel:
             .sort_values([f"start_{date_range}", date_range])
             .rename(columns={"is_active": "number_active_users"})
         )
+
+        retention_data.loc[
+            retention_data[f"start_{date_range}"] == retention_data[date_range], 'number_active_users'
+        ] = 0
 
         fig_retention_curves = go.Figure()
 
@@ -472,7 +491,7 @@ class DataModel:
                     x=data_cohort[date_range],
                     y=data_cohort["number_active_users"],
                     name=pd.to_datetime(str(cohort)).strftime('%Y-%m-%d'),
-                    text=data_cohort[f"start_{date_range}"],
+                    text=data_cohort[f"start_{date_range}"].apply(lambda x: x.strftime('%Y-%m-%d')),
                     hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
                     stackgroup="one",
                     mode="lines",
