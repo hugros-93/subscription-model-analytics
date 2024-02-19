@@ -2,12 +2,14 @@
 Analytics framework for subscription model data.
 
 ## TO DO
-- active users and retantion curve: same x axis
-- retention curve: check hover issues
-- sanity check
+- dash design
+    - daily only for active users and growth accounting
+    - split Growth and Retention
+        - active users and growth accounting (day, week, month)
+        - retention (week, month) -> deprecate retention daily
+
 - plotly style
 - css
-- dash design
 
 ### Viz
 - Charts
