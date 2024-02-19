@@ -2,25 +2,28 @@
 Analytics framework for subscription model data.
 
 ## TO DO
-- dash design
-    - daily only for active users and growth accounting
-    - split Growth and Retention
+- Dash design
+    - add date range sections
         - active users and growth accounting (day, week, month)
         - retention (week, month) -> deprecate retention daily
 
-- plotly style
-- css
-
-### Viz
 - Charts
-    - Churn (%)
+    - Add churn section (week, month)
+        - churn #s 
+        - churn %s
     - KPI
-        - Active users now (+ delta last period)
-        - New users current period (+ delta last period)
-        - Churn current period (+ delta last period)
+        - Active users now
+        - by day, week, month
+            - New users current period (+ delta last period)
+            - Churn current period (+ delta last period)
+        - by week, month
+            - retention % cohort starting N week ago / N month ago
 
-### App
-- Drag and drop file
+- Design
+    - plotly style
+    - css
+
+- Load data from file
 
 ### Predictions
 - Retention model

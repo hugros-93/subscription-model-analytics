@@ -5,7 +5,7 @@ from utils.dash import get_please_load_data_message, DashboardColors
 
 def make_layout(charts_data):
     if not charts_data:
-        return html.Div([html.H2("Analytics"), get_please_load_data_message()])
+        return html.Div([html.H2("Growth"), get_please_load_data_message()])
     else:
         for i in [1, 2]:
             charts_data["retention"][i]['layout']['height'] = 800
@@ -16,25 +16,7 @@ def make_layout(charts_data):
             color=DashboardColors.gray,
             children=html.Div(
             [
-                html.H2("Analytics"),
-                dcc.Graph(
-                    figure=charts_data["active_users"],
-                    style={
-                        "border-radius": "15px",
-                        "background-color": "white",
-                    },
-                    config={"displayModeBar": False},
-                ),
-                html.Br(),
-                dcc.Graph(
-                    figure=charts_data["growth_accounting"],
-                    style={
-                        "border-radius": "15px",
-                        "background-color": "white",
-                    },
-                    config={"displayModeBar": False},
-                ),
-                html.Br(),
+                html.H2("Retention"),
                 dcc.Graph(
                     figure=charts_data["retention"][0],
                     style={

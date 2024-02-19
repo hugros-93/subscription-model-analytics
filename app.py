@@ -8,8 +8,8 @@ import plotly.graph_objects as go
 import json
 import pandas as pd
 
-from pages import readme, data, analytics
-from utils.dash import get_header_buttons, get_navigation, get_filters, DashboardColors
+from pages import readme, data, growth, retention
+from utils.dash import get_header_buttons, get_navigation, DashboardColors
 from utils.model import DataModel
 
 # Plotly template
@@ -38,8 +38,9 @@ server = app.server
 # Navigation
 pages = {
     "Readme": {"href": "/", "content": readme},
+    "Growth": {"href": "/growth", "content": growth},
+    "Retention": {"href": "/retention", "content": retention},
     "Data": {"href": "/data", "content": data},
-    "Analytics": {"href": "/analytics", "content": analytics},
 }
 
 # Header
@@ -74,50 +75,13 @@ content = dcc.Loading(
     ],
 )
 
-# Filter
-dict_filter_choices = {
-    "date": {
-        "display_name": "Date range",
-        "data": ["day", "week", "month"],
-    }
-}
-
-filters = html.Div(
-    [
-        html.Br(),
-        html.Div(
-            [
-                dbc.Row(
-                    get_filters(dict_filter_choices),
-                    # align="Center",
-                )
-            ],
-            className="div-white-border-radius",
-            style={"padding": "20px", "margin-right": "30px", "margin-left": "30px"}
-        ),
-    ],
-    id="filter-date",
-)
-
 # Storage
 storage = html.Div(
     [dcc.Store(id="store-input-data"), dcc.Store(id="store-model-charts")]
 )
 
 # Layout
-app.layout = html.Div([dcc.Location(id="url"), header, filters, content, storage])
-
-
-# Callback layout
-@app.callback(
-    Output("filter-date", "style"),
-    [Input("url", "pathname"), Input("store-model-charts", "data")],
-)
-def update_date_filter(pathname, store_model_data):
-    if pathname == "/analytics" and store_model_data:
-        return {"display": "block", "visibility": "visible"}
-    else:
-        return {"display": "none", "visibility": "hidden"}
+app.layout = html.Div([dcc.Location(id="url"), header, content, storage])
 
 
 # Callback page navigation
@@ -127,20 +91,26 @@ def update_date_filter(pathname, store_model_data):
         Input("url", "pathname"),
         Input("store-input-data", "data"),
         Input("store-model-charts", "data"),
-        Input("dropdown-filter-date", "value"),
     ],
 )
-def render_page_content(pathname, input_data, charts_data, date_range):
+def render_page_content(pathname, input_data, charts_data):
+    date_range = 'month'
     if pathname == "/":
         return pages["Readme"]["content"].make_layout()
     elif pathname == "/data":
         return pages["Data"]["content"].make_layout(input_data)
-    elif pathname == "/analytics":
+    elif pathname == "/growth":
         if charts_data and date_range:
             chart_data_date_range = charts_data[date_range]
         else:
             chart_data_date_range = None
-        return pages["Analytics"]["content"].make_layout(chart_data_date_range)
+        return pages["Growth"]["content"].make_layout(chart_data_date_range)
+    elif pathname == "/retention":
+        if charts_data and date_range:
+            chart_data_date_range = charts_data[date_range]
+        else:
+            chart_data_date_range = None
+        return pages["Retention"]["content"].make_layout(chart_data_date_range)
     else:
         return None
 

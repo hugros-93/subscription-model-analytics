@@ -399,110 +399,112 @@ class DataModel:
             )
         )
         fig.update_layout(
-            title="Growth accoutning",
+            title="Growth accounting",
             xaxis_title=date_range.capitalize(),
             yaxis_title="Number of users",
             barmode="relative",
         )
         dict_chart["growth_accounting"] = fig
 
-        # Retention
-        fig_count = go.Figure()
-        fig_count.add_trace(
-            go.Heatmap(
-                x=retention_aggregated_count.columns,
-                y=[x.strftime("%Y-%m-%d") for x in retention_aggregated_count.index],
-                z=retention_aggregated_count.values,
-                hovertemplate="<b>Start: %{y}<br>"
-                + f"{date_range.capitalize()}: "
-                + "%{x}</b><br>%{z} users<extra></extra>",
-                text=retention_aggregated_count.values,
-                texttemplate="%{z}",
-                colorscale="Greens",
-                hoverongaps=False,
-                xgap=1,
-                ygap=1,
-            )
-        )
-        fig_count.update_layout(
-            title="Retention",
-            xaxis_title=date_range.capitalize(),
-            yaxis_title=f"Start {date_range.capitalize()}",
-            yaxis_autorange="reversed",
-            xaxis_side="top",
-        )
+        if date_range in ('week', 'month'):
 
-        fig_percentage = go.Figure()
-        fig_percentage.add_trace(
-            go.Heatmap(
-                x=retention_aggregated_percentage.columns,
-                y=[
-                    x.strftime("%Y-%m-%d")
-                    for x in retention_aggregated_percentage.index
-                ],
-                z=retention_aggregated_percentage.values,
-                hovertemplate="<b>Start: %{y}<br>"
-                + f"{date_range.capitalize()}: "
-                + "%{x}</b><br>%{z}%<extra></extra>",
-                text=retention_aggregated_percentage.values,
-                texttemplate="%{z}",
-                colorscale="Blues",
-                hoverongaps=False,
-                xgap=1,
-                ygap=1,
-            )
-        )
-        fig_percentage.update_layout(
-            title="Retention (%)",
-            xaxis_title=date_range.capitalize(),
-            yaxis_title=f"Start {date_range.capitalize()}",
-            yaxis_autorange="reversed",
-            xaxis_side="top",
-        )
-
-        retention_data = retention_data.loc[
-            :, [f"start_{date_range}", date_range, "is_active"]
-        ]
-        for start_date_range in pd.unique(retention_data[f"start_{date_range}"]):
-            for d in self.date_range_dict[date_range]:
-                retention_data = pd.concat([retention_data, pd.DataFrame([[start_date_range, d, 0]], columns=retention_data.columns)], axis = 0)
-        retention_data = retention_data.groupby([f"start_{date_range}", date_range]).sum()['is_active'].reset_index()
-
-        retention_data = (
-            retention_data.groupby([f"start_{date_range}", date_range])["is_active"]
-            .sum()
-            .reset_index()
-            .sort_values([f"start_{date_range}", date_range])
-            .rename(columns={"is_active": "number_active_users"})
-        )
-
-        retention_data.loc[
-            retention_data[f"start_{date_range}"] == retention_data[date_range], 'number_active_users'
-        ] = 0
-
-        fig_retention_curves = go.Figure()
-
-        for cohort in pd.unique(retention_data[f"start_{date_range}"]):
-            data_cohort = retention_data.loc[
-                retention_data[f"start_{date_range}"] == cohort, :
-            ]
-            fig_retention_curves.add_trace(
-                go.Scatter(
-                    x=data_cohort[date_range],
-                    y=data_cohort["number_active_users"],
-                    name=pd.to_datetime(str(cohort)).strftime('%Y-%m-%d'),
-                    text=data_cohort[f"start_{date_range}"].apply(lambda x: x.strftime('%Y-%m-%d')),
-                    hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
-                    stackgroup="one",
-                    mode="lines",
+            # Retention
+            fig_count = go.Figure()
+            fig_count.add_trace(
+                go.Heatmap(
+                    x=retention_aggregated_count.columns,
+                    y=[x.strftime("%Y-%m-%d") for x in retention_aggregated_count.index],
+                    z=retention_aggregated_count.values,
+                    hovertemplate="<b>Start: %{y}<br>"
+                    + f"{date_range.capitalize()}: "
+                    + "%{x}</b><br>%{z} users<extra></extra>",
+                    text=retention_aggregated_count.values,
+                    texttemplate="%{z}",
+                    colorscale="Greens",
+                    hoverongaps=False,
+                    xgap=1,
+                    ygap=1,
                 )
             )
-        fig_retention_curves.update_layout(
-            title="Retention curves",
-            xaxis_title=date_range.capitalize(),
-            yaxis_title="Number of active users",
-        )
+            fig_count.update_layout(
+                title="Retention",
+                xaxis_title=date_range.capitalize(),
+                yaxis_title=f"Start {date_range.capitalize()}",
+                yaxis_autorange="reversed",
+                xaxis_side="top",
+            )
 
-        dict_chart["retention"] = [fig_retention_curves, fig_count, fig_percentage]
+            fig_percentage = go.Figure()
+            fig_percentage.add_trace(
+                go.Heatmap(
+                    x=retention_aggregated_percentage.columns,
+                    y=[
+                        x.strftime("%Y-%m-%d")
+                        for x in retention_aggregated_percentage.index
+                    ],
+                    z=retention_aggregated_percentage.values,
+                    hovertemplate="<b>Start: %{y}<br>"
+                    + f"{date_range.capitalize()}: "
+                    + "%{x}</b><br>%{z}%<extra></extra>",
+                    text=retention_aggregated_percentage.values,
+                    texttemplate="%{z}",
+                    colorscale="Blues",
+                    hoverongaps=False,
+                    xgap=1,
+                    ygap=1,
+                )
+            )
+            fig_percentage.update_layout(
+                title="Retention (%)",
+                xaxis_title=date_range.capitalize(),
+                yaxis_title=f"Start {date_range.capitalize()}",
+                yaxis_autorange="reversed",
+                xaxis_side="top",
+            )
+
+            retention_data = retention_data.loc[
+                :, [f"start_{date_range}", date_range, "is_active"]
+            ]
+            for start_date_range in pd.unique(retention_data[f"start_{date_range}"]):
+                for d in self.date_range_dict[date_range]:
+                    retention_data = pd.concat([retention_data, pd.DataFrame([[start_date_range, d, 0]], columns=retention_data.columns)], axis = 0)
+            retention_data = retention_data.groupby([f"start_{date_range}", date_range]).sum()['is_active'].reset_index()
+
+            retention_data = (
+                retention_data.groupby([f"start_{date_range}", date_range])["is_active"]
+                .sum()
+                .reset_index()
+                .sort_values([f"start_{date_range}", date_range])
+                .rename(columns={"is_active": "number_active_users"})
+            )
+
+            retention_data.loc[
+                retention_data[f"start_{date_range}"] == retention_data[date_range], 'number_active_users'
+            ] = 0
+
+            fig_retention_curves = go.Figure()
+
+            for cohort in pd.unique(retention_data[f"start_{date_range}"]):
+                data_cohort = retention_data.loc[
+                    retention_data[f"start_{date_range}"] == cohort, :
+                ]
+                fig_retention_curves.add_trace(
+                    go.Scatter(
+                        x=data_cohort[date_range],
+                        y=data_cohort["number_active_users"],
+                        name=pd.to_datetime(str(cohort)).strftime('%Y-%m-%d'),
+                        text=data_cohort[f"start_{date_range}"].apply(lambda x: x.strftime('%Y-%m-%d')),
+                        hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
+                        stackgroup="one",
+                        mode="lines",
+                    )
+                )
+            fig_retention_curves.update_layout(
+                title="Retention curves",
+                xaxis_title=date_range.capitalize(),
+                yaxis_title="Number of active users",
+            )
+
+            dict_chart["retention"] = [fig_retention_curves, fig_count, fig_percentage]
 
         return dict_chart
