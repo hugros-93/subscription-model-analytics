@@ -7,11 +7,9 @@ def make_layout(charts_data):
     if not charts_data:
         return html.Div([html.H2("Analytics"), get_please_load_data_message()])
     else:
-        charts_data["retention"][1]['layout']['height'] = 800
-        charts_data["retention"][2]['layout']['height'] = 800
-
-        charts_data["retention"][1]['layout']['yaxis']['automargin'] = True
-        charts_data["retention"][2]['layout']['yaxis']['automargin'] = True
+        for i in [1, 2]:
+            charts_data["retention"][i]['layout']['height'] = 800
+            charts_data["retention"][i]['layout']['yaxis']['automargin'] = True
 
         return dcc.Loading(
             type="circle",
