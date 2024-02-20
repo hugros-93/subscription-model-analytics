@@ -30,9 +30,11 @@ class DataModel:
         self.min_start_date_week = self.min_start_date - timedelta(
             days=(self.min_start_date.weekday()) % 7
         )
-        self.max_end_date_week = self.max_end_date - timedelta(
-            days=(self.max_end_date.weekday()) % 7
-        ) + timedelta(days=7)
+        self.max_end_date_week = (
+            self.max_end_date
+            - timedelta(days=(self.max_end_date.weekday()) % 7)
+            + timedelta(days=7)
+        )
         self.list_date_range_week = [
             self.min_start_date_week + timedelta(days=7 * i)
             for i in range(
@@ -42,7 +44,9 @@ class DataModel:
 
         # Date range - months
         self.min_start_date_month = self.min_start_date.replace(day=1)
-        self.max_end_date_month = self.max_end_date.replace(day=1) + relativedelta(months=1)
+        self.max_end_date_month = self.max_end_date.replace(day=1) + relativedelta(
+            months=1
+        )
         self.list_date_range_month = [
             self.min_start_date_month + relativedelta(months=i)
             for i in range(
@@ -64,7 +68,9 @@ class DataModel:
 
     def fit(self):
         active_user_data = self.dataset.copy()
-        active_user_data['end_date'] = active_user_data['end_date'].fillna(self.max_end_date)
+        active_user_data["end_date"] = active_user_data["end_date"].fillna(
+            self.max_end_date
+        )
 
         self.active_user_data_dict = {}
         self.active_user_data_aggregated_dict = {}
@@ -85,11 +91,13 @@ class DataModel:
             )
 
             # Active subscription in each date range
-            active_user_data_date_range[
-                "is_active"
-            ] = active_user_data_date_range.apply(
-                lambda x: 1 if x["start_date"] <= x[date_range] < x["end_date"] else 0,
-                axis=1,
+            active_user_data_date_range["is_active"] = (
+                active_user_data_date_range.apply(
+                    lambda x: (
+                        1 if x["start_date"] <= x[date_range] < x["end_date"] else 0
+                    ),
+                    axis=1,
+                )
             )
             active_user_data_date_range = (
                 active_user_data_date_range.groupby([date_range, "user_id"])[
@@ -100,29 +108,35 @@ class DataModel:
             )
 
             # Status over time ()
-            active_user_data_date_range[
-                "is_active_previous"
-            ] = active_user_data_date_range.groupby("user_id")["is_active"].shift(
-                1, fill_value=0
+            active_user_data_date_range["is_active_previous"] = (
+                active_user_data_date_range.groupby("user_id")["is_active"].shift(
+                    1, fill_value=0
+                )
             )
-            active_user_data_date_range[
-                "was_active"
-            ] = active_user_data_date_range.groupby("user_id")["is_active"].cumsum()
+            active_user_data_date_range["was_active"] = (
+                active_user_data_date_range.groupby("user_id")["is_active"].cumsum()
+            )
             active_user_data_date_range["was_active"] = active_user_data_date_range[
                 "was_active"
             ].apply(lambda x: 1 if x > 1 else 0)
             active_user_data_date_range["status"] = active_user_data_date_range.apply(
-                lambda x: "new_active"
-                if x["is_active"] == 1
-                and x["is_active_previous"] == 0
-                and x["was_active"] == 0
-                else "resurrected"
-                if x["is_active"] == 1
-                and x["is_active_previous"] == 0
-                and x["was_active"] == 1
-                else "churn"
-                if x["is_active"] == 0 and x["is_active_previous"] == 1
-                else None,
+                lambda x: (
+                    "new_active"
+                    if x["is_active"] == 1
+                    and x["is_active_previous"] == 0
+                    and x["was_active"] == 0
+                    else (
+                        "resurrected"
+                        if x["is_active"] == 1
+                        and x["is_active_previous"] == 0
+                        and x["was_active"] == 1
+                        else (
+                            "churn"
+                            if x["is_active"] == 0 and x["is_active_previous"] == 1
+                            else None
+                        )
+                    )
+                ),
                 axis=1,
             )
 
@@ -182,15 +196,25 @@ class DataModel:
                 .reset_index()
             )
             retention_start_date.columns = ["user_id", f"start_{date_range}"]
-            retention_start_date[f"start_{date_range}"] = retention_start_date[f"start_{date_range}"].apply(
-                lambda x: x - timedelta(days=1) if date_range == 'day'
-                else x - timedelta(days=7) if date_range == 'week'
-                else (x - timedelta(days=1)).replace(day=1)
+            retention_start_date[f"start_{date_range}"] = retention_start_date[
+                f"start_{date_range}"
+            ].apply(
+                lambda x: (
+                    x - timedelta(days=1)
+                    if date_range == "day"
+                    else (
+                        x - timedelta(days=7)
+                        if date_range == "week"
+                        else (x - timedelta(days=1)).replace(day=1)
+                    )
+                )
             )
             retention_data_start_period = retention_start_date.copy()
             retention_data_start_period["is_active"] = 1
             retention_data_start_period.columns = retention_data.columns
-            retention_data = pd.concat([retention_data, retention_data_start_period], axis=0)
+            retention_data = pd.concat(
+                [retention_data, retention_data_start_period], axis=0
+            )
 
             retention_data = pd.merge(
                 retention_data, retention_start_date, how="left", on="user_id"
@@ -210,35 +234,39 @@ class DataModel:
                 how="left",
             )
             retention_data["percentage"] = retention_data.apply(
-                lambda x: 100 * x["is_active"] / x["total"]
-                if x["total"] != 0
-                else None,
+                lambda x: (
+                    100 * x["is_active"] / x["total"] if x["total"] != 0 else None
+                ),
                 axis=1,
             )
 
             if date_range == "month":
                 retention_data[f"{date_range}_number"] = retention_data.apply(
-                    lambda x: relativedelta(
-                        x[date_range], x[f"start_{date_range}"]
-                    ).years
-                    * 12
-                    + relativedelta(x[date_range], x[f"start_{date_range}"]).months
-                    if x[f"start_{date_range}"] <= x[date_range]
-                    else None,
+                    lambda x: (
+                        relativedelta(x[date_range], x[f"start_{date_range}"]).years
+                        * 12
+                        + relativedelta(x[date_range], x[f"start_{date_range}"]).months
+                        if x[f"start_{date_range}"] <= x[date_range]
+                        else None
+                    ),
                     axis=1,
                 )
             elif date_range == "week":
                 retention_data[f"{date_range}_number"] = retention_data.apply(
-                    lambda x: int((x[date_range] - x[f"start_{date_range}"]).days / 7)
-                    if x[f"start_{date_range}"] <= x[date_range]
-                    else None,
+                    lambda x: (
+                        int((x[date_range] - x[f"start_{date_range}"]).days / 7)
+                        if x[f"start_{date_range}"] <= x[date_range]
+                        else None
+                    ),
                     axis=1,
                 )
             elif date_range == "day":
                 retention_data[f"{date_range}_number"] = retention_data.apply(
-                    lambda x: (x[date_range] - x[f"start_{date_range}"]).days
-                    if x[f"start_{date_range}"] <= x[date_range]
-                    else None,
+                    lambda x: (
+                        (x[date_range] - x[f"start_{date_range}"]).days
+                        if x[f"start_{date_range}"] <= x[date_range]
+                        else None
+                    ),
                     axis=1,
                 )
 
@@ -329,9 +357,9 @@ class DataModel:
 
             # Store in dict
             self.active_user_data_dict[date_range] = active_user_data_date_range
-            self.active_user_data_aggregated_dict[
-                date_range
-            ] = active_user_data_date_range_aggregated
+            self.active_user_data_aggregated_dict[date_range] = (
+                active_user_data_date_range_aggregated
+            )
             self.retention_data_dict[date_range] = retention_data
             self.retention_data_aggregated_dict[date_range] = [
                 retention_data_pivot_number,
@@ -360,6 +388,7 @@ class DataModel:
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
                 marker_color="Green",
                 marker_symbol="square",
+                mode="lines",
             )
         )
         fig.update_layout(
@@ -406,14 +435,67 @@ class DataModel:
         )
         dict_chart["growth_accounting"] = fig
 
-        if date_range in ('week', 'month'):
+        if date_range in ("week", "month"):
+
+            # Churn
+            churn_data = active_users.loc[:, ["churn", "number_active_users"]]
+            churn_data["number_active_users_previous"] = churn_data[
+                "number_active_users"
+            ].shift(periods=1)
+            churn_data["churn"] = -churn_data["churn"]
+            churn_data["churn_percentage"] = churn_data.apply(
+                lambda x: (
+                    round(100 * x["churn"] / x["number_active_users_previous"], -1)
+                    if x["number_active_users_previous"] != 0
+                    and x["number_active_users_previous"] != None
+                    else None
+                ),
+                axis=1,
+            )
+
+            fig_churn_count = go.Figure()
+            fig_churn_count.add_trace(
+                go.Bar(
+                    x=churn_data.index,
+                    y=churn_data["churn"],
+                    name="Churn",
+                    hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
+                    marker_color="Red",
+                )
+            )
+            fig_churn_count.update_layout(
+                title="Churn users",
+                xaxis_title=date_range.capitalize(),
+                yaxis_title="Number of churn users",
+            )
+            dict_chart["churn_count"] = fig_churn_count
+
+            fig_churn_percentage = go.Figure()
+            fig_churn_percentage.add_trace(
+                go.Scatter(
+                    x=churn_data.index,
+                    y=churn_data["churn_percentage"],
+                    hovertemplate="<b>%{x}</b>: %{y}% churn<extra></extra>",
+                    marker_color="Red",
+                    marker_symbol="square",
+                    mode="markers+lines",
+                )
+            )
+            fig_churn_percentage.update_layout(
+                title="Churn users",
+                xaxis_title=date_range.capitalize(),
+                yaxis_title="Number of churn users",
+            )
+            dict_chart["churn_percentage"] = fig_churn_percentage
 
             # Retention
             fig_count = go.Figure()
             fig_count.add_trace(
                 go.Heatmap(
                     x=retention_aggregated_count.columns,
-                    y=[x.strftime("%Y-%m-%d") for x in retention_aggregated_count.index],
+                    y=[
+                        x.strftime("%Y-%m-%d") for x in retention_aggregated_count.index
+                    ],
                     z=retention_aggregated_count.values,
                     hovertemplate="<b>Start: %{y}<br>"
                     + f"{date_range.capitalize()}: "
@@ -467,8 +549,21 @@ class DataModel:
             ]
             for start_date_range in pd.unique(retention_data[f"start_{date_range}"]):
                 for d in self.date_range_dict[date_range]:
-                    retention_data = pd.concat([retention_data, pd.DataFrame([[start_date_range, d, 0]], columns=retention_data.columns)], axis = 0)
-            retention_data = retention_data.groupby([f"start_{date_range}", date_range]).sum()['is_active'].reset_index()
+                    retention_data = pd.concat(
+                        [
+                            retention_data,
+                            pd.DataFrame(
+                                [[start_date_range, d, 0]],
+                                columns=retention_data.columns,
+                            ),
+                        ],
+                        axis=0,
+                    )
+            retention_data = (
+                retention_data.groupby([f"start_{date_range}", date_range])
+                .sum()["is_active"]
+                .reset_index()
+            )
 
             retention_data = (
                 retention_data.groupby([f"start_{date_range}", date_range])["is_active"]
@@ -479,7 +574,8 @@ class DataModel:
             )
 
             retention_data.loc[
-                retention_data[f"start_{date_range}"] == retention_data[date_range], 'number_active_users'
+                retention_data[f"start_{date_range}"] == retention_data[date_range],
+                "number_active_users",
             ] = 0
 
             fig_retention_curves = go.Figure()
@@ -492,8 +588,10 @@ class DataModel:
                     go.Scatter(
                         x=data_cohort[date_range],
                         y=data_cohort["number_active_users"],
-                        name=pd.to_datetime(str(cohort)).strftime('%Y-%m-%d'),
-                        text=data_cohort[f"start_{date_range}"].apply(lambda x: x.strftime('%Y-%m-%d')),
+                        name=pd.to_datetime(str(cohort)).strftime("%Y-%m-%d"),
+                        text=data_cohort[f"start_{date_range}"].apply(
+                            lambda x: x.strftime("%Y-%m-%d")
+                        ),
                         hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
                         stackgroup="one",
                         mode="lines",

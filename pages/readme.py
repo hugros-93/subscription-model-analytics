@@ -12,6 +12,6 @@ def make_layout():
                 [dcc.Markdown("Readme text here.")],
                 className="div-white-border-radius",
                 style={"padding": "20px", "background": DashboardColors.white},
-            )
+            ),
         ]
     )

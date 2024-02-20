@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import json
 import pandas as pd
 
-from pages import readme, data, growth, retention
+from pages import readme, data, growth, retention, churn
 from utils.dash import get_header_buttons, get_navigation, DashboardColors
 from utils.model import DataModel
 
@@ -40,6 +40,7 @@ pages = {
     "Readme": {"href": "/", "content": readme},
     "Growth": {"href": "/growth", "content": growth},
     "Retention": {"href": "/retention", "content": retention},
+    "Churn": {"href": "/churn", "content": churn},
     "Data": {"href": "/data", "content": data},
 }
 
@@ -94,23 +95,16 @@ app.layout = html.Div([dcc.Location(id="url"), header, content, storage])
     ],
 )
 def render_page_content(pathname, input_data, charts_data):
-    date_range = 'month'
     if pathname == "/":
         return pages["Readme"]["content"].make_layout()
     elif pathname == "/data":
         return pages["Data"]["content"].make_layout(input_data)
     elif pathname == "/growth":
-        if charts_data and date_range:
-            chart_data_date_range = charts_data[date_range]
-        else:
-            chart_data_date_range = None
-        return pages["Growth"]["content"].make_layout(chart_data_date_range)
+        return pages["Growth"]["content"].make_layout(charts_data)
     elif pathname == "/retention":
-        if charts_data and date_range:
-            chart_data_date_range = charts_data[date_range]
-        else:
-            chart_data_date_range = None
-        return pages["Retention"]["content"].make_layout(chart_data_date_range)
+        return pages["Retention"]["content"].make_layout(charts_data)
+    elif pathname == "/churn":
+        return pages["Churn"]["content"].make_layout(charts_data)
     else:
         return None
 

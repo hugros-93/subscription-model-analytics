@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 
 from utils.dash import get_please_load_data_message, DashboardColors
 
-title = "Retention"
+title = "Churn"
 
 
 def make_layout(charts_data):
@@ -11,16 +11,8 @@ def make_layout(charts_data):
         return html.Div([html.H2(title), get_please_load_data_message()])
     else:
         for date_range in ["month", "week"]:
-            charts_data[date_range]["retention"][0]["layout"]["height"] = 400
-            for i in [1, 2]:
-                if date_range == "month":
-                    charts_data[date_range]["retention"][i]["layout"]["height"] = 600
-                else:
-                    charts_data[date_range]["retention"][i]["layout"]["height"] = 1200
-                charts_data[date_range]["retention"][i]["layout"]["yaxis"][
-                    "automargin"
-                ] = True
-
+            charts_data[date_range]["churn_count"]["layout"]["height"] = 400
+            charts_data[date_range]["churn_percentage"]["layout"]["height"] = 400
         return html.Div(
             [
                 html.H2(title),
@@ -34,8 +26,8 @@ def make_layout(charts_data):
                                     [
                                         html.Br(),
                                         dcc.Graph(
-                                            figure=charts_data[date_range]["retention"][
-                                                0
+                                            figure=charts_data[date_range][
+                                                "churn_count"
                                             ],
                                             style={
                                                 "border-radius": "15px",
@@ -45,19 +37,8 @@ def make_layout(charts_data):
                                         ),
                                         html.Br(),
                                         dcc.Graph(
-                                            figure=charts_data[date_range]["retention"][
-                                                1
-                                            ],
-                                            style={
-                                                "border-radius": "15px",
-                                                "background-color": "white",
-                                            },
-                                            config={"displayModeBar": False},
-                                        ),
-                                        html.Br(),
-                                        dcc.Graph(
-                                            figure=charts_data[date_range]["retention"][
-                                                2
+                                            figure=charts_data[date_range][
+                                                "churn_percentage"
                                             ],
                                             style={
                                                 "border-radius": "15px",

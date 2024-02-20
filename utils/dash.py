@@ -120,7 +120,7 @@ def get_table(df, filter_action="native"):
 
 def get_please_load_data_message():
     return html.Div(
-        [dcc.Markdown("Please click on the `Load data` button first.")],
+        [dcc.Markdown("Please load data by clicking on the `Load data` button.")],
         className="div-white-border-radius",
         style={"padding": "20px", "background": DashboardColors.white},
     )
