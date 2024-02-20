@@ -61,7 +61,7 @@ def get_header_buttons():
                     color=DashboardColors.green,
                     children=dcc.Upload(
                         dbc.Button(
-                            "Load data",
+                            "📥 Load data",
                             id="button-load-data",
                             color="primary",
                             className="me-1",
