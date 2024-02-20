@@ -8,7 +8,10 @@ import plotly.graph_objects as go
 import json
 import pandas as pd
 
-from pages import readme, data, growth, retention, churn
+import base64
+import io
+
+from pages import readme, data, growth, retention, churn, kpis
 from utils.dash import get_header_buttons, get_navigation, DashboardColors
 from utils.model import DataModel
 
@@ -38,6 +41,7 @@ server = app.server
 # Navigation
 pages = {
     "Readme": {"href": "/", "content": readme},
+    "KPIs": {"href": "/kpis", "content": kpis},
     "Growth": {"href": "/growth", "content": growth},
     "Retention": {"href": "/retention", "content": retention},
     "Churn": {"href": "/churn", "content": churn},
@@ -78,8 +82,15 @@ content = dcc.Loading(
 
 # Storage
 storage = html.Div(
-    [dcc.Store(id="store-input-data"), dcc.Store(id="store-model-charts")]
+    [
+        dcc.Store(id="store-input-data"),
+        dcc.Store(id="store-model-charts"),
+        dcc.Store(id="store-model-kpis"),
+    ]
 )
+
+# Upload
+
 
 # Layout
 app.layout = html.Div([dcc.Location(id="url"), header, content, storage])
@@ -92,9 +103,10 @@ app.layout = html.Div([dcc.Location(id="url"), header, content, storage])
         Input("url", "pathname"),
         Input("store-input-data", "data"),
         Input("store-model-charts", "data"),
+        Input("store-model-kpis", "data"),
     ],
 )
-def render_page_content(pathname, input_data, charts_data):
+def render_page_content(pathname, input_data, charts_data, kpis_data):
     if pathname == "/":
         return pages["Readme"]["content"].make_layout()
     elif pathname == "/data":
@@ -105,6 +117,8 @@ def render_page_content(pathname, input_data, charts_data):
         return pages["Retention"]["content"].make_layout(charts_data)
     elif pathname == "/churn":
         return pages["Churn"]["content"].make_layout(charts_data)
+    elif pathname == "/kpis":
+        return pages["KPIs"]["content"].make_layout(kpis_data)
     else:
         return None
 
@@ -114,23 +128,26 @@ def render_page_content(pathname, input_data, charts_data):
     [
         Output("store-input-data", "data"),
         Output("store-model-charts", "data"),
+        Output("store-model-kpis", "data"),
         Output("button-load-data", "value"),
         Output("output-load-data", "children"),
     ],
-    Input("button-load-data", "n_clicks"),
+    Input("upload-file", "contents"),
+    Input("upload-file", "filename"),
 )
-def load_data(n_clicks):
-    if n_clicks:
-        # Load data
-        print(f"> Loading data")
-        filename = "data/dataset.csv"
-        dataset = pd.read_csv(filename)
-        dataset["start_date"] = pd.to_datetime(dataset["start_date"])
-        dataset["end_date"] = pd.to_datetime(dataset["end_date"])
-
-        # Load or create charts
-        print(f"> Loading charts")
+def load_data(content, filename):
+    if content is None:
         try:
+            # Load data
+            print(f"> Loading data")
+            filename = "data/dataset.csv"
+            dataset = pd.read_csv(filename)
+            dataset["start_date"] = pd.to_datetime(dataset["start_date"])
+            dataset["end_date"] = pd.to_datetime(dataset["end_date"])
+
+            # Load or create charts
+            print(f"> Loading charts")
+
             # Load existing data
             with open("figures/fig_dict.json", "r") as f:
                 fig_dict = json.load(f)
@@ -144,9 +161,32 @@ def load_data(n_clicks):
                         fig_dict[date_range][fig] = go.Figure(
                             json.loads(fig_dict[date_range][fig])
                         )
+            with open("figures/fig_kpis.json", "r") as f:
+                fig_kpis = json.load(f)
+                for kpi in fig_kpis:
+                    fig_kpis[kpi] = go.Figure(json.loads(fig_kpis[kpi]))
             print(f"> Existing charts loaded!")
+            return [
+                dataset.to_json(date_format="iso", orient="split"),
+                fig_dict,
+                fig_kpis,
+                "Load data",
+                True,
+            ]
         except Exception as e:
             print(f"> Not loading existing charts: {e}")
+            return [None, None, None, "Load data", False]
+    else:
+        content_type, content_string = content.split(",")
+        decoded = base64.b64decode(content_string)
+        if ".csv" not in filename:
+            raise Exception("File is not a .csv")
+        else:
+            # Load data
+            dataset = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
+            dataset["start_date"] = pd.to_datetime(dataset["start_date"])
+            dataset["end_date"] = pd.to_datetime(dataset["end_date"])
+
             # Create data model
             print(f"> Fitting model")
             model = DataModel(dataset)
@@ -157,6 +197,7 @@ def load_data(n_clicks):
             fig_dict = {}
             for date_range in model.date_range_dict.keys():
                 fig_dict[date_range] = model.get_charts(date_range)
+            fig_kpis = model.get_kpis()
 
             # Export data
             print(f"> Exporting charts")
@@ -168,26 +209,26 @@ def load_data(n_clicks):
                         fig_dict_json[date_range][fig] = [
                             x.to_json() for x in fig_dict[date_range][fig]
                         ]
-                        for i, x in enumerate(fig_dict[date_range][fig]):
-                            x.write_html(f"figures/{fig}_{date_range}_{i}.html")
                     else:
                         fig_dict_json[date_range][fig] = fig_dict[date_range][
                             fig
                         ].to_json()
-                        fig_dict[date_range][fig].write_html(
-                            f"figures/{fig}_{date_range}.html"
-                        )
+            fig_kpis_json = {}
+            for kpi in fig_kpis:
+                fig_kpis_json[kpi] = fig_kpis[kpi].to_json()
+
             with open("figures/fig_dict.json", "w") as f:
                 json.dump(fig_dict_json, f)
+            with open("figures/fig_kpis.json", "w") as f:
+                json.dump(fig_kpis_json, f)
 
-        return [
-            dataset.to_json(date_format="iso", orient="split"),
-            fig_dict,
-            "Load data",
-            True,
-        ]
-    else:
-        return [None, None, "Load data", False]
+            return [
+                dataset.to_json(date_format="iso", orient="split"),
+                fig_dict,
+                fig_kpis,
+                "Load data",
+                True,
+            ]
 
 
 # Callback load data modal

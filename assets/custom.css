@@ -22,3 +22,12 @@ hr {
     border-radius: 15px;
     background-color: white;
 }
+
+/* Hide general scrollbar */
+body::-webkit-scrollbar {
+    width: 0px;
+}
+
+body::-webkit-scrollbar-thumb {
+    background-color: transparent;
+}

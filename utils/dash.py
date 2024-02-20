@@ -1,22 +1,23 @@
 from dash import dcc, html, dash_table
 import dash_bootstrap_components as dbc
 
-class DashboardColors:
-    black = 'black'
-    white = 'white'
-    gray = 'gray'
 
+class DashboardColors:
+    black = "black"
+    white = "white"
+    gray = "gray"
 
 
 def get_header_buttons():
     return dbc.Col(
-            html.Div(
-                [
-                    dcc.Loading(
-                        id="loading-state-load-data",
-                        type="circle",
-                        color=DashboardColors.white,
-                        children=dbc.Button(
+        html.Div(
+            [
+                dcc.Loading(
+                    id="loading-state-load-data",
+                    type="circle",
+                    color=DashboardColors.white,
+                    children=dcc.Upload(
+                        dbc.Button(
                             "Load data",
                             id="button-load-data",
                             color="primary",
@@ -24,28 +25,31 @@ def get_header_buttons():
                             n_clicks=0,
                             disabled=False,
                         ),
+                        id="upload-file",
                     ),
-                    html.P(id="output-load-data"),
-                    dbc.Modal(
-                        [
-                            dbc.ModalBody("Data successfully loaded!"),
-                            dbc.ModalFooter(
-                                dbc.Button(
-                                    "Close",
-                                    id="button-modal-load-data",
-                                    className="ms-auto",
-                                    n_clicks=0,
-                                )
-                            ),
-                        ],
-                        id="modal-load-data",
-                        is_open=False,
-                    ),
-                ],
-                className="d-grid gap-2 d-md-flex justify-content-md-end",
-            ),
-            width=True,
-        )
+                ),
+                html.P(id="output-load-data"),
+                dbc.Modal(
+                    [
+                        dbc.ModalBody("Data successfully loaded!"),
+                        dbc.ModalFooter(
+                            dbc.Button(
+                                "Close",
+                                id="button-modal-load-data",
+                                className="ms-auto",
+                                n_clicks=0,
+                            )
+                        ),
+                    ],
+                    id="modal-load-data",
+                    is_open=False,
+                ),
+            ],
+            className="d-grid gap-2 d-md-flex justify-content-md-end",
+        ),
+        width=True,
+    )
+
 
 def get_navigation(pages):
     nav_pages = [
@@ -55,10 +59,9 @@ def get_navigation(pages):
         for page in pages
     ]
 
-    nav = dbc.Col(
-            [dbc.Nav(nav_pages, vertical=False, pills=True)]
-        )
+    nav = dbc.Col([dbc.Nav(nav_pages, vertical=False, pills=True)])
     return nav
+
 
 def get_filters(dict_filter_choices):
     return [
@@ -76,6 +79,7 @@ def get_filters(dict_filter_choices):
         for x in dict_filter_choices
     ]
 
+
 def create_conditional_style(df):
     PIXEL_FOR_CHAR = 10
     style = []
@@ -86,6 +90,7 @@ def create_conditional_style(df):
         style.append({"if": {"column_id": col}, "minWidth": pixel})
 
     return style
+
 
 def get_table(df, filter_action="native"):
     style_cell_conditional = create_conditional_style(df)
@@ -117,6 +122,7 @@ def get_table(df, filter_action="native"):
             "height": "auto",
         },
     )
+
 
 def get_please_load_data_message():
     return html.Div(

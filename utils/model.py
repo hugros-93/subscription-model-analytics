@@ -366,6 +366,153 @@ class DataModel:
                 retention_data_pivot_percentage,
             ]
 
+    def get_kpis(self):
+        # Dict charts
+        dict_kpis = {}
+
+        # Data
+        active_users_day = self.active_user_data_aggregated_dict["day"]
+        active_users_week = self.active_user_data_aggregated_dict["week"]
+        active_users_month = self.active_user_data_aggregated_dict["month"]
+
+        # KPIs
+        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
+        this_week = today - timedelta(days=(today.weekday()) % 7)
+        last_week = this_week - timedelta(days=7)
+        this_month = today.replace(day=1)
+        last_month = this_month - relativedelta(month=1)
+
+        active_users_now = active_users_day["number_active_users"][today]
+        active_users_end_last_week = active_users_day["number_active_users"][this_week]
+        active_users_end_last_month = active_users_day["number_active_users"][
+            this_month
+        ]
+
+        dict_kpis["active_users_now"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=active_users_now,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Current"},
+            )
+        )
+
+        dict_kpis["active_users_end_last_week"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=active_users_end_last_week,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "End of last week"},
+            )
+        )
+
+        dict_kpis["active_users_end_last_month"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=active_users_end_last_month,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "End of last month"},
+            )
+        )
+
+        new_users_this_week = (
+            active_users_week["new_active"][this_week]
+            + active_users_week["resurrected"][this_week]
+        )
+        new_users_last_week = (
+            active_users_week["new_active"][last_week]
+            + active_users_week["resurrected"][last_week]
+        )
+
+        new_users_this_month = (
+            active_users_month["new_active"][this_month]
+            + active_users_month["resurrected"][this_month]
+        )
+        new_users_last_month = (
+            active_users_month["new_active"][last_month]
+            + active_users_month["resurrected"][last_month]
+        )
+
+        dict_kpis["new_users_this_week"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=new_users_this_week,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Current week"},
+            )
+        )
+
+        dict_kpis["new_users_last_week"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=new_users_last_week,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Last week"},
+            )
+        )
+
+        dict_kpis["new_users_this_month"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=new_users_this_month,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Current month"},
+            )
+        )
+
+        dict_kpis["new_users_last_month"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=new_users_last_month,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Last month"},
+            )
+        )
+
+        churn_this_week = active_users_week["churn"][this_week]
+        churn_last_week = active_users_week["churn"][last_week]
+
+        churn_this_month = active_users_month["churn"][this_month]
+        churn_last_month = active_users_month["churn"][last_month]
+
+        dict_kpis["churn_this_week"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=churn_this_week,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Current week"},
+            )
+        )
+
+        dict_kpis["churn_last_week"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=churn_last_week,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Last week"},
+            )
+        )
+
+        dict_kpis["churn_this_month"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=churn_this_month,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Current month"},
+            )
+        )
+
+        dict_kpis["churn_last_month"] = go.Figure(
+            go.Indicator(
+                mode="number",
+                value=churn_last_month,
+                domain={"x": [0, 1], "y": [0, 1]},
+                title={"text": "Last month"},
+            )
+        )
+
+        return dict_kpis
+
     def get_charts(self, date_range):
         # Dict charts
         dict_chart = {}
@@ -513,7 +660,7 @@ class DataModel:
                 xaxis_title=date_range.capitalize(),
                 yaxis_title=f"Start {date_range.capitalize()}",
                 yaxis_autorange="reversed",
-                xaxis_side="top",
+                xaxis_side="bottom",
             )
 
             fig_percentage = go.Figure()
@@ -541,7 +688,7 @@ class DataModel:
                 xaxis_title=date_range.capitalize(),
                 yaxis_title=f"Start {date_range.capitalize()}",
                 yaxis_autorange="reversed",
-                xaxis_side="top",
+                xaxis_side="bottom",
             )
 
             retention_data = retention_data.loc[
