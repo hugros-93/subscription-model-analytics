@@ -396,7 +396,7 @@ class DataModel:
                 value=active_users_now,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current"},
-                number_font={"color": DashboardColors.black},
+                number_font={"color": DashboardColors.gray},
             )
         )
 
@@ -406,7 +406,7 @@ class DataModel:
                 value=active_users_end_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last week"},
-                number_font={"color": DashboardColors.black},
+                number_font={"color": DashboardColors.gray},
             )
         )
 
@@ -416,7 +416,7 @@ class DataModel:
                 value=active_users_end_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last month"},
-                number_font={"color": DashboardColors.black},
+                number_font={"color": DashboardColors.gray},
             )
         )
 
@@ -546,7 +546,7 @@ class DataModel:
                 y=active_users["number_active_users"],
                 fill="tozeroy",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                marker_color="Black",
+                marker_color=DashboardColors.gray,
                 marker_symbol="square",
                 mode="lines",
             )
@@ -740,7 +740,7 @@ class DataModel:
 
             fig_retention_curves = go.Figure()
 
-            for cohort in pd.unique(retention_data[f"start_{date_range}"]):
+            for i,cohort in enumerate(pd.unique(retention_data[f"start_{date_range}"])):
                 data_cohort = retention_data.loc[
                     retention_data[f"start_{date_range}"] == cohort, :
                 ]
@@ -763,6 +763,8 @@ class DataModel:
                         hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
                         stackgroup="one",
                         mode="lines",
+                        marker_color=DashboardColors.palette_category[i % len(DashboardColors.palette_category)],
+                        line_width=0
                     )
                 )
             fig_retention_curves.update_layout(

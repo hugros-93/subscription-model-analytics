@@ -48,7 +48,7 @@ class DataGenerator:
 if __name__ == "__main__":
 
     # Parameters
-    NUMBER_USERS = 10
+    NUMBER_USERS = 100
     START_DATE = datetime(2022, 1, 1)
     END_DATE = datetime(2025, 1, 1)
 

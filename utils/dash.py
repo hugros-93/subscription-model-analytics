@@ -58,7 +58,7 @@ def get_header_buttons():
                 dcc.Loading(
                     id="loading-state-load-data",
                     type="circle",
-                    color=DashboardColors.white,
+                    color=DashboardColors.green,
                     children=dcc.Upload(
                         dbc.Button(
                             "Load data",
@@ -147,7 +147,7 @@ def get_table(df, filter_action="native"):
         filter_action=filter_action,
         sort_action="native",
         sort_mode="multi",
-        style_table={"height": 400},
+        style_table={"height": 600},
         style_cell_conditional=style_cell_conditional,
         style_header={
             "color": DashboardColors.white,

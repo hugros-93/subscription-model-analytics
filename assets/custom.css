@@ -5,6 +5,7 @@
     --gray: gray;
     --background_gray: #e4e6e6;
     --green: #00b050;
+    --light-green: #90e990;
     --yellow: #ffc82f;
     --orange: #f37021;
     --red: #ff0000;
@@ -66,14 +67,14 @@ body::-webkit-scrollbar-thumb {
 
 /* Button (primary) */
 .btn-primary {
-    background-color: var(--color-1);
-    border-color: var(--color-1);
+    background-color: var(--green);
+    border-color: var(--green);
     color: var(--white);
 }
 
 .btn-primary:hover {
-    background-color: var(--color-1-hover);
-    border-color: var(--color-1-hover);
+    background-color: var(--light-green);
+    border-color: var(--light-green);
     color: var(--white);
 }
 
@@ -122,7 +123,7 @@ body::-webkit-scrollbar-thumb {
 
 /* Navigation */
 .nav-pills .nav-link.active {
-    background-color: var(--color-0);
+    background-color: var(--gray);
     text-decoration: underline;
 }
 
@@ -132,13 +133,13 @@ body::-webkit-scrollbar-thumb {
     color: var(--black);
 }
 .nav-link:hover {
-    border-color: var(--color-1--hover);
-    color: var(--color-1--hover);
+    border-color: var(--black);
+    color: var(--black);
 }
 
 .nav-link.active {
-    border-color: var(--color-1);
-    color: var(--color-1);
+    border-color: var(--black);
+    color: var(--black);
 }
 
 /* Tables */
