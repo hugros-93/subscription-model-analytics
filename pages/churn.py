@@ -13,48 +13,51 @@ def make_layout(charts_data):
         for date_range in ["month", "week"]:
             charts_data[date_range]["churn_count"]["layout"]["height"] = 400
             charts_data[date_range]["churn_percentage"]["layout"]["height"] = 400
+            charts_data[date_range]["churn_percentage"]["layout"]["height"] = 400
         return html.Div(
             [
                 html.H2(title),
-                dbc.Tabs(
-                    [
-                        dbc.Tab(
-                            dcc.Loading(
-                                type="circle",
-                                color=DashboardColors.gray,
-                                children=html.Div(
-                                    [
-                                        html.Br(),
-                                        dcc.Graph(
-                                            figure=charts_data[date_range][
-                                                "churn_count"
-                                            ],
-                                            style={
-                                                "border-radius": "15px",
-                                                "background-color": "white",
-                                            },
-                                            config={"displayModeBar": False},
-                                        ),
-                                        html.Br(),
-                                        dcc.Graph(
-                                            figure=charts_data[date_range][
-                                                "churn_percentage"
-                                            ],
-                                            style={
-                                                "border-radius": "15px",
-                                                "background-color": "white",
-                                            },
-                                            config={"displayModeBar": False},
-                                        ),
-                                    ]
+                dbc.CardHeader(
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(
+                                dcc.Loading(
+                                    type="circle",
+                                    color=DashboardColors.gray,
+                                    children=html.Div(
+                                        [
+                                            html.Br(),
+                                            dcc.Graph(
+                                                figure=charts_data[date_range][
+                                                    "churn_count"
+                                                ],
+                                                style={
+                                                    "border-radius": "15px",
+                                                    "background-color": "white",
+                                                },
+                                                config={"displayModeBar": False},
+                                            ),
+                                            html.Br(),
+                                            dcc.Graph(
+                                                figure=charts_data[date_range][
+                                                    "churn_percentage"
+                                                ],
+                                                style={
+                                                    "border-radius": "15px",
+                                                    "background-color": "white",
+                                                },
+                                                config={"displayModeBar": False},
+                                            ),
+                                        ]
+                                    ),
                                 ),
-                            ),
-                            label=date_range.capitalize(),
-                            tab_id=date_range,
-                        )
-                        for date_range in ["month", "week"]
-                    ],
-                    active_tab="month",
+                                label=date_range.capitalize(),
+                                tab_id=date_range,
+                            )
+                            for date_range in ["month", "week"]
+                        ],
+                        active_tab="month",
+                    )
                 ),
             ]
         )

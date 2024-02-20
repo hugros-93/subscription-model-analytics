@@ -18,7 +18,9 @@ class DataGenerator:
             subscription_id = uuid.uuid4()
 
             # Start date
-            date_range_start = min(self.max_end_date, datetime.today()) - self.min_start_date
+            date_range_start = (
+                min(self.max_end_date, datetime.today()) - self.min_start_date
+            )
             random_start_days = random.randint(0, date_range_start.days)
             start_date = self.min_start_date + timedelta(days=random_start_days)
 
@@ -46,7 +48,7 @@ class DataGenerator:
 if __name__ == "__main__":
 
     # Parameters
-    NUMBER_USERS = 10
+    NUMBER_USERS = 1000
     START_DATE = datetime(2022, 1, 1)
     END_DATE = datetime(2025, 1, 1)
 

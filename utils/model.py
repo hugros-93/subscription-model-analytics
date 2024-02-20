@@ -394,6 +394,7 @@ class DataModel:
                 value=active_users_now,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current"},
+                number_font={"color": "black"},
             )
         )
 
@@ -403,6 +404,7 @@ class DataModel:
                 value=active_users_end_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last week"},
+                number_font={"color": "black"},
             )
         )
 
@@ -412,6 +414,7 @@ class DataModel:
                 value=active_users_end_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last month"},
+                number_font={"color": "black"},
             )
         )
 
@@ -439,6 +442,7 @@ class DataModel:
                 value=new_users_this_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current week"},
+                number_font={"color": "green"},
             )
         )
 
@@ -448,6 +452,7 @@ class DataModel:
                 value=new_users_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last week"},
+                number_font={"color": "green"},
             )
         )
 
@@ -457,6 +462,7 @@ class DataModel:
                 value=new_users_this_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current month"},
+                number_font={"color": "green"},
             )
         )
 
@@ -466,14 +472,15 @@ class DataModel:
                 value=new_users_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last month"},
+                number_font={"color": "green"},
             )
         )
 
-        churn_this_week = active_users_week["churn"][this_week]
-        churn_last_week = active_users_week["churn"][last_week]
+        churn_this_week = -active_users_week["churn"][this_week]
+        churn_last_week = -active_users_week["churn"][last_week]
 
-        churn_this_month = active_users_month["churn"][this_month]
-        churn_last_month = active_users_month["churn"][last_month]
+        churn_this_month = -active_users_month["churn"][this_month]
+        churn_last_month = -active_users_month["churn"][last_month]
 
         dict_kpis["churn_this_week"] = go.Figure(
             go.Indicator(
@@ -481,6 +488,7 @@ class DataModel:
                 value=churn_this_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current week"},
+                number_font={"color": "red"},
             )
         )
 
@@ -490,6 +498,7 @@ class DataModel:
                 value=churn_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last week"},
+                number_font={"color": "red"},
             )
         )
 
@@ -499,6 +508,7 @@ class DataModel:
                 value=churn_this_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current month"},
+                number_font={"color": "red"},
             )
         )
 
@@ -508,6 +518,7 @@ class DataModel:
                 value=churn_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last month"},
+                number_font={"color": "red"},
             )
         )
 
@@ -533,7 +544,7 @@ class DataModel:
                 y=active_users["number_active_users"],
                 fill="tozeroy",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                marker_color="Green",
+                marker_color="Black",
                 marker_symbol="square",
                 mode="lines",
             )
@@ -592,7 +603,7 @@ class DataModel:
             churn_data["churn"] = -churn_data["churn"]
             churn_data["churn_percentage"] = churn_data.apply(
                 lambda x: (
-                    round(100 * x["churn"] / x["number_active_users_previous"], -1)
+                    round(100 * x["churn"] / x["number_active_users_previous"], 1)
                     if x["number_active_users_previous"] != 0
                     and x["number_active_users_previous"] != None
                     else None
@@ -607,7 +618,7 @@ class DataModel:
                     y=churn_data["churn"],
                     name="Churn",
                     hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                    marker_color="Red",
+                    marker_color="Red"
                 )
             )
             fig_churn_count.update_layout(
@@ -631,7 +642,7 @@ class DataModel:
             fig_churn_percentage.update_layout(
                 title="Churn users",
                 xaxis_title=date_range.capitalize(),
-                yaxis_title="Number of churn users",
+                yaxis_title="Percentage of churn users",
             )
             dict_chart["churn_percentage"] = fig_churn_percentage
 
@@ -660,7 +671,7 @@ class DataModel:
                 xaxis_title=date_range.capitalize(),
                 yaxis_title=f"Start {date_range.capitalize()}",
                 yaxis_autorange="reversed",
-                xaxis_side="bottom",
+                xaxis_side="top",
             )
 
             fig_percentage = go.Figure()
@@ -688,7 +699,7 @@ class DataModel:
                 xaxis_title=date_range.capitalize(),
                 yaxis_title=f"Start {date_range.capitalize()}",
                 yaxis_autorange="reversed",
-                xaxis_side="bottom",
+                xaxis_side="top",
             )
 
             retention_data = retention_data.loc[
@@ -731,13 +742,21 @@ class DataModel:
                 data_cohort = retention_data.loc[
                     retention_data[f"start_{date_range}"] == cohort, :
                 ]
+                if date_range == "month":
+                    cohort_names = pd.to_datetime(str(cohort)).strftime("%b %Y")
+                else:
+                    cohort_names = pd.to_datetime(str(cohort)).strftime("%m/%d/%Y")
                 fig_retention_curves.add_trace(
                     go.Scatter(
                         x=data_cohort[date_range],
                         y=data_cohort["number_active_users"],
-                        name=pd.to_datetime(str(cohort)).strftime("%Y-%m-%d"),
+                        name=cohort_names,
                         text=data_cohort[f"start_{date_range}"].apply(
-                            lambda x: x.strftime("%Y-%m-%d")
+                            lambda x: (
+                                x.strftime("%b %Y")
+                                if date_range == "month"
+                                else x.strftime("%m/%d/%Y")
+                            )
                         ),
                         hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
                         stackgroup="one",

@@ -16,45 +16,49 @@ def make_layout(charts_data):
         return html.Div(
             [
                 html.H2(title),
-                dbc.Tabs(
-                    [
-                        dbc.Tab(
-                            dcc.Loading(
-                                type="circle",
-                                color=DashboardColors.gray,
-                                children=html.Div(
-                                    [
-                                        html.Br(),
-                                        dcc.Graph(
-                                            figure=charts_data[date_range][
-                                                "active_users"
-                                            ],
-                                            style={
-                                                "border-radius": "15px",
-                                                "background-color": "white",
-                                            },
-                                            config={"displayModeBar": False},
-                                        ),
-                                        html.Br(),
-                                        dcc.Graph(
-                                            figure=charts_data[date_range][
-                                                "growth_accounting"
-                                            ],
-                                            style={
-                                                "border-radius": "15px",
-                                                "background-color": "white",
-                                            },
-                                            config={"displayModeBar": False},
-                                        ),
-                                    ]
+                dbc.CardHeader(
+                    dbc.Tabs(
+                        [
+                            dbc.Tab(
+                                dcc.Loading(
+                                    type="circle",
+                                    color=DashboardColors.gray,
+                                    children=html.Div(
+                                        [
+                                            html.Br(),
+                                            dcc.Graph(
+                                                figure=charts_data[date_range][
+                                                    "active_users"
+                                                ],
+                                                style={
+                                                    "border-radius": "15px",
+                                                    "background-color": "white",
+                                                },
+                                                config={"displayModeBar": False},
+                                            ),
+                                            html.Br(),
+                                            dcc.Graph(
+                                                figure=charts_data[date_range][
+                                                    "growth_accounting"
+                                                ],
+                                                style={
+                                                    "border-radius": "15px",
+                                                    "background-color": "white",
+                                                },
+                                                config={"displayModeBar": False},
+                                            ),
+                                        ]
+                                    ),
                                 ),
-                            ),
-                            label=date_range.capitalize(),
-                            tab_id=date_range,
-                        )
-                        for date_range in ["month", "week", "day"]
-                    ],
-                    active_tab="month",
+                                label=date_range.capitalize(),
+                                tab_id=date_range,
+                                # active_tab_style={"background-color": DashboardColors.background_gray},
+                                # tab_style={"background-color": DashboardColors.background_gray}
+                            )
+                            for date_range in ["month", "week", "day"]
+                        ],
+                        active_tab="month",
+                    )
                 ),
             ]
         )

@@ -6,6 +6,7 @@ class DashboardColors:
     black = "black"
     white = "white"
     gray = "gray"
+    background_gray = "#e4e6e6"
 
 
 def get_header_buttons():

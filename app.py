@@ -177,7 +177,7 @@ def load_data(content, filename):
             print(f"> Not loading existing charts: {e}")
             return [None, None, None, "Load data", False]
     else:
-        content_type, content_string = content.split(",")
+        _, content_string = content.split(",")
         decoded = base64.b64decode(content_string)
         if ".csv" not in filename:
             raise Exception("File is not a .csv")
