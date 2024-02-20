@@ -13,11 +13,11 @@ def make_layout(input_data):
         input_data = pd.read_json(input_data, orient="split")
 
         input_data["start_date"] = input_data["start_date"].apply(
-            lambda x: pd.to_datetime(x).strftime("%Y-%m-%d %H:%M:%S")
+            lambda x: pd.to_datetime(x).strftime("%Y-%m-%d")
         )
         input_data["end_date"] = input_data["end_date"].apply(
             lambda x: (
-                pd.to_datetime(x).strftime("%Y-%m-%d %H:%M:%S") if x != None else None
+                pd.to_datetime(x).strftime("%Y-%m-%d") if x != None else None
             )
         )
 
