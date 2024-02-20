@@ -3,9 +3,8 @@ Analytics framework for subscription model data.
 
 ## TO DO
 - Design
-    - header and page colors
-    - plotly style and colormap
-    - css (buttons, tab)
+    - plotly palette (blues, greens, categorical)
+    - header, page, button and nav colors
     - readme
 
 ### Predictions

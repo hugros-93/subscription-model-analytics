@@ -120,6 +120,27 @@ body::-webkit-scrollbar-thumb {
     color: var(--white);
 }
 
+/* Navigation */
+.nav-pills .nav-link.active {
+    background-color: var(--color-0);
+    text-decoration: underline;
+}
+
+/* Tabs */
+.nav-link {
+    border-color: var(--black);
+    color: var(--black);
+}
+.nav-link:hover {
+    border-color: var(--color-1--hover);
+    color: var(--color-1--hover);
+}
+
+.nav-link.active {
+    border-color: var(--color-1);
+    color: var(--color-1);
+}
+
 /* Tables */
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td,
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {

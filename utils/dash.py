@@ -16,7 +16,7 @@ class DashboardColors:
     red = "#ff0000"
 
     palette_category = [
-        "#1f77b4",
+        "#1319cb",
         "#ff7f0e",
         "#2ca02c",
         "#d62728",
