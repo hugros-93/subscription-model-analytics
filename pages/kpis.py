@@ -27,7 +27,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["active_users_now"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 ),
@@ -39,7 +39,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["active_users_end_last_week"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -49,7 +49,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["active_users_end_last_month"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -66,7 +66,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["new_users_this_week"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -76,7 +76,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["new_users_last_week"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -86,7 +86,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["new_users_this_month"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -96,7 +96,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["new_users_last_month"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -112,7 +112,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["churn_this_week"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -122,7 +122,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["churn_last_week"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -132,7 +132,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["churn_this_month"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )
@@ -142,7 +142,7 @@ def make_layout(kpis_data):
                                     figure=kpis_data["churn_last_month"],
                                     style={
                                         "border-radius": "15px",
-                                        "background-color": "white",
+                                        "background-color": DashboardColors.white,
                                     },
                                     config={"displayModeBar": False},
                                 )

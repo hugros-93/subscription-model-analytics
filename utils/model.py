@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import plotly.graph_objects as go
 
+from utils.dash import DashboardColors
+
 
 class DataModel:
     def __init__(self, dataset):
@@ -394,7 +396,7 @@ class DataModel:
                 value=active_users_now,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current"},
-                number_font={"color": "black"},
+                number_font={"color": DashboardColors.black},
             )
         )
 
@@ -404,7 +406,7 @@ class DataModel:
                 value=active_users_end_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last week"},
-                number_font={"color": "black"},
+                number_font={"color": DashboardColors.black},
             )
         )
 
@@ -414,7 +416,7 @@ class DataModel:
                 value=active_users_end_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "End of last month"},
-                number_font={"color": "black"},
+                number_font={"color": DashboardColors.black},
             )
         )
 
@@ -442,7 +444,7 @@ class DataModel:
                 value=new_users_this_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current week"},
-                number_font={"color": "green"},
+                number_font={"color": DashboardColors.green},
             )
         )
 
@@ -452,7 +454,7 @@ class DataModel:
                 value=new_users_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last week"},
-                number_font={"color": "green"},
+                number_font={"color": DashboardColors.green},
             )
         )
 
@@ -462,7 +464,7 @@ class DataModel:
                 value=new_users_this_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current month"},
-                number_font={"color": "green"},
+                number_font={"color": DashboardColors.green},
             )
         )
 
@@ -472,7 +474,7 @@ class DataModel:
                 value=new_users_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last month"},
-                number_font={"color": "green"},
+                number_font={"color": DashboardColors.green},
             )
         )
 
@@ -488,7 +490,7 @@ class DataModel:
                 value=churn_this_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current week"},
-                number_font={"color": "red"},
+                number_font={"color": DashboardColors.red},
             )
         )
 
@@ -498,7 +500,7 @@ class DataModel:
                 value=churn_last_week,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last week"},
-                number_font={"color": "red"},
+                number_font={"color": DashboardColors.red},
             )
         )
 
@@ -508,7 +510,7 @@ class DataModel:
                 value=churn_this_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Current month"},
-                number_font={"color": "red"},
+                number_font={"color": DashboardColors.red},
             )
         )
 
@@ -518,7 +520,7 @@ class DataModel:
                 value=churn_last_month,
                 domain={"x": [0, 1], "y": [0, 1]},
                 title={"text": "Last month"},
-                number_font={"color": "red"},
+                number_font={"color": DashboardColors.red},
             )
         )
 
@@ -564,7 +566,7 @@ class DataModel:
                 y=active_users["new_active"],
                 name="New active",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                marker_color="Green",
+                marker_color=DashboardColors.green,
             )
         )
         fig.add_trace(
@@ -573,7 +575,7 @@ class DataModel:
                 y=active_users["resurrected"],
                 name="Resurrected",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                marker_color="LightGreen",
+                marker_color=DashboardColors.light_green,
             )
         )
         fig.add_trace(
@@ -582,7 +584,7 @@ class DataModel:
                 y=active_users["churn"],
                 name="Churn",
                 hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                marker_color="Red",
+                marker_color=DashboardColors.red,
             )
         )
         fig.update_layout(
@@ -618,7 +620,7 @@ class DataModel:
                     y=churn_data["churn"],
                     name="Churn",
                     hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                    marker_color="Red"
+                    marker_color=DashboardColors.red
                 )
             )
             fig_churn_count.update_layout(
@@ -634,7 +636,7 @@ class DataModel:
                     x=churn_data.index,
                     y=churn_data["churn_percentage"],
                     hovertemplate="<b>%{x}</b>: %{y}% churn<extra></extra>",
-                    marker_color="Red",
+                    marker_color=DashboardColors.red,
                     marker_symbol="square",
                     mode="markers+lines",
                 )

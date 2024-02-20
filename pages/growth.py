@@ -32,7 +32,7 @@ def make_layout(charts_data):
                                                 ],
                                                 style={
                                                     "border-radius": "15px",
-                                                    "background-color": "white",
+                                                    "background-color": DashboardColors.white,
                                                 },
                                                 config={"displayModeBar": False},
                                             ),
@@ -43,7 +43,7 @@ def make_layout(charts_data):
                                                 ],
                                                 style={
                                                     "border-radius": "15px",
-                                                    "background-color": "white",
+                                                    "background-color": DashboardColors.white,
                                                 },
                                                 config={"displayModeBar": False},
                                             ),

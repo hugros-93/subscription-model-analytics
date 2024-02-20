@@ -4,7 +4,8 @@
             "x": 0.02
         },
         "font": {
-            "size": 16
+            "size": 16,
+            "family": "Helvetica, sans-serif"
         },
         "plot_bgcolor": "white",
         "paper_bgcolor": "rgb(0,0,0,0)",
