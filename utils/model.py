@@ -620,7 +620,7 @@ class DataModel:
                     y=churn_data["churn"],
                     name="Churn",
                     hovertemplate="<b>%{x}</b>: %{y} users<extra></extra>",
-                    marker_color=DashboardColors.red
+                    marker_color=DashboardColors.red,
                 )
             )
             fig_churn_count.update_layout(
@@ -740,7 +740,9 @@ class DataModel:
 
             fig_retention_curves = go.Figure()
 
-            for i,cohort in enumerate(pd.unique(retention_data[f"start_{date_range}"])):
+            for i, cohort in enumerate(
+                pd.unique(retention_data[f"start_{date_range}"])
+            ):
                 data_cohort = retention_data.loc[
                     retention_data[f"start_{date_range}"] == cohort, :
                 ]
@@ -763,8 +765,10 @@ class DataModel:
                         hovertemplate="<b>Cohort: %{text}</b><br><b>%{x}</b>: %{y} users<extra></extra>",
                         stackgroup="one",
                         mode="lines",
-                        marker_color=DashboardColors.palette_category[i % len(DashboardColors.palette_category)],
-                        line_width=0
+                        marker_color=DashboardColors.palette_category[
+                            i % len(DashboardColors.palette_category)
+                        ],
+                        line_width=0,
                     )
                 )
             fig_retention_curves.update_layout(

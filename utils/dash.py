@@ -97,7 +97,10 @@ def get_header_buttons():
 def get_navigation(pages):
     nav_pages = [
         dbc.NavLink(
-            page, href=pages[page]["href"], style={"color": DashboardColors.white}, active="exact"
+            page,
+            href=pages[page]["href"],
+            style={"color": DashboardColors.white},
+            active="exact",
         )
         for page in pages
     ]

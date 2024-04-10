@@ -9,8 +9,9 @@ def make_layout():
         [
             html.H2("Readme"),
             html.Div(
-                [dcc.Markdown(
-                    """
+                [
+                    dcc.Markdown(
+                        """
                     ### Overview
                     This dashboard will help you analyse subscription product data.
 
@@ -36,7 +37,8 @@ def make_layout():
                     #### Data
                     This section will allow you to navigate into the input data. 
                     """
-                )],
+                    )
+                ],
                 className="div-white-border-radius",
                 style={"padding": "20px", "background": DashboardColors.white},
             ),

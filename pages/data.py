@@ -16,9 +16,7 @@ def make_layout(input_data):
             lambda x: pd.to_datetime(x).strftime("%Y-%m-%d")
         )
         input_data["end_date"] = input_data["end_date"].apply(
-            lambda x: (
-                pd.to_datetime(x).strftime("%Y-%m-%d") if x != None else None
-            )
+            lambda x: (pd.to_datetime(x).strftime("%Y-%m-%d") if x != None else None)
         )
 
         input_data.columns = [

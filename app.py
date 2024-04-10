@@ -89,9 +89,6 @@ storage = html.Div(
     ]
 )
 
-# Upload
-
-
 # Layout
 app.layout = html.Div([dcc.Location(id="url"), header, content, storage])
 
