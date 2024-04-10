@@ -1,5 +1,5 @@
 # subscription-model-analytics
-A dashboard to help you analysing subscription-based product data.
+A dashboard to help you analyse subscription product data.
 
 ![screenshot](assets/screenshot.png)
 

@@ -12,7 +12,7 @@ def make_layout():
                 [dcc.Markdown(
                     """
                     ### Overview
-                    This dashboard will help you analyse useful metrics for subscription-based product.
+                    This dashboard will help you analyse subscription product data.
 
                     #### Load data
                     Using the `Load data` button, upload a csv filw with the following columns:
