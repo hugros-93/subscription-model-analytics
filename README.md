@@ -1,10 +1,9 @@
 # subscription-model-analytics
-Analytics framework for subscription model data.
+A dashboard to help you analysing subscription-based product data.
 
 ![screenshot](assets/screenshot.png)
 
-### Overview
-This dashboard will help you analyse useful metrics for subscription-based product.
+### Dashboard overview
 
 #### Load data
 Using the `Load data` button, upload a csv filw with the following columns:
@@ -28,7 +27,19 @@ Here we will focus on churn, with total number of churn by time period and churn
 #### Data
 This section will allow you to navigate into the input data. 
 
-### Next steps
-- Retention model
-- LTV
-- KPIs in %
+### Setup
+To run the dashboard locally, follow the steps bellow:
+1. Clone the repo
+2. Open command line in the root folder
+3. Create a virtual env: `python -m venv venv`
+4. With virtual env activated, install requirements: `pip install -r requirements.txt` 
+5. In the root folder, start the app: `python app.py`
+
+
+## Project structure
+- `app.py`: The app to run the dashboard.
+- `pages/`: The different pages of the app.
+- `utils/`: Some utility functions for the model, dash or to generate synthetic data.
+- `data/`: Where the input data is stored once uploaded.
+- `figures/`: Where charts figures are exported after data upload. When you re-run the app, the charts will be re-loaded from here, saving some computation time.
+- `assets/`: The folder for app custom `.css`, plotly template, logos...
